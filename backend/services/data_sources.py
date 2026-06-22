@@ -13,7 +13,7 @@
 import feedparser
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import random
 import hashlib
 import re
@@ -85,8 +85,8 @@ class RedditScraper:
                     try:
                         upvotes = int(getattr(entry, 'reddit_score', 1000))
                         comments = int(getattr(entry, 'reddit_comments', 10))
-                        pub_time = datetime(*entry.published_parsed[:6]) if hasattr(entry, 'published_parsed') else datetime.utcnow()
-                        age_hours = (datetime.utcnow() - pub_time).total_seconds() / 3600
+                        pub_time = datetime(*entry.published_parsed[:6]) if hasattr(entry, 'published_parsed') else datetime.now(UTC)
+                        age_hours = (datetime.now(UTC) - pub_time).total_seconds() / 3600
 
                         summary = _clean_html(entry.get('summary', '')[:500])
 
@@ -100,7 +100,7 @@ class RedditScraper:
                             trend_direction="rising" if age_hours < 12 else ("stable" if age_hours < 48 else "falling"),
                             velocity_score=min(100, max(0, 100 - age_hours * 0.5)),
                             published_at=pub_time.isoformat(),
-                            fetched_at=datetime.utcnow().isoformat(),
+                            fetched_at=datetime.now(UTC).isoformat(),
                             ad_relevance=round(random.uniform(5.5, 9.5), 1),
                             category=sub_name,
                             region="global",
@@ -194,8 +194,8 @@ class XTwitterScraper:
                         heat_score=round(min(100, 85 * weight * boost * rank_factor), 1),
                         trend_direction="rising" if i < 3 else "stable",
                         velocity_score=round(min(100, 90 - i * 3), 1),
-                        published_at=datetime.utcnow().isoformat(),
-                        fetched_at=datetime.utcnow().isoformat(),
+                        published_at=datetime.now(UTC).isoformat(),
+                        fetched_at=datetime.now(UTC).isoformat(),
                         ad_relevance=round(min(10, 9.5 if is_game_related else 7.0), 1),
                         category="trending_topic" if not is_hashtag else "viral_hashtag",
                         keywords=[trend_text.replace('#','')] if is_hashtag else [],
@@ -272,8 +272,8 @@ class TikTokTrendScraper:
                         heat_score=round(min(100, random.uniform(65, 95) * weight), 1),
                         trend_direction="rising",
                         velocity_score=round(random.uniform(75, 99), 1),
-                        published_at=datetime.utcnow().isoformat(),
-                        fetched_at=datetime.utcnow().isoformat(),
+                        published_at=datetime.now(UTC).isoformat(),
+                        fetched_at=datetime.now(UTC).isoformat(),
                         ad_relevance=round(random.uniform(7.0, 9.8), 1),
                         category="viral_challenge" if "challenge" in title_lower else "trending_sound",
                         region=region,
@@ -313,8 +313,8 @@ class TikTokTrendScraper:
                                 heat_score=round(random.uniform(70, 95), 1),
                                 trend_direction="rising",
                                 velocity_score=round(random.uniform(80, 98), 1),
-                                published_at=datetime.utcnow().isoformat(),
-                                fetched_at=datetime.utcnow().isoformat(),
+                                published_at=datetime.now(UTC).isoformat(),
+                                fetched_at=datetime.now(UTC).isoformat(),
                                 ad_relevance=round(random.uniform(7.5, 9.5), 1),
                                 category="viral_hashtag",
                                 keywords=[name],
@@ -351,8 +351,8 @@ class TikTokTrendScraper:
                     heat_score=round(random.uniform(65, 85), 1),
                     trend_direction="stable",
                     velocity_score=round(random.uniform(55, 75), 1),
-                    published_at=datetime.utcnow().isoformat(),
-                    fetched_at=datetime.utcnow().isoformat(),
+                    published_at=datetime.now(UTC).isoformat(),
+                    fetched_at=datetime.now(UTC).isoformat(),
                     ad_relevance=round(random.uniform(7.0, 9.0), 1),
                     category="tiktok_trend",
                     region="US",
@@ -403,8 +403,8 @@ class GoogleTrendsScraper:
                         heat_score=round(min(100, random.uniform(55, 90) * weight), 1),
                         trend_direction="rising",
                         velocity_score=round(random.uniform(65, 95), 1),
-                        published_at=datetime.utcnow().isoformat(),
-                        fetched_at=datetime.utcnow().isoformat(),
+                        published_at=datetime.now(UTC).isoformat(),
+                        fetched_at=datetime.now(UTC).isoformat(),
                         ad_relevance=round(random.uniform(5.5, 8.5), 1),
                         category="search_trend",
                         region=region,
@@ -476,8 +476,8 @@ class PopCultureScraper:
                         heat_score=round(min(100, random.uniform(55, 92) * weight), 1),
                         trend_direction="stable",
                         velocity_score=round(random.uniform(45, 80), 1),
-                        published_at=datetime.utcnow().isoformat(),
-                        fetched_at=datetime.utcnow().isoformat(),
+                        published_at=datetime.now(UTC).isoformat(),
+                        fetched_at=datetime.now(UTC).isoformat(),
                         ad_relevance=round(random.uniform(6.5, 9.5), 1),
                         category="entertainment",
                         keywords=matched_kw,
@@ -554,8 +554,8 @@ class GameNewsScraper:
                         heat_score=round(min(100, random.uniform(50, 85) * weight * boost), 1),
                         trend_direction="stable",
                         velocity_score=round(random.uniform(40, 75), 1),
-                        published_at=datetime.utcnow().isoformat(),
-                        fetched_at=datetime.utcnow().isoformat(),
+                        published_at=datetime.now(UTC).isoformat(),
+                        fetched_at=datetime.now(UTC).isoformat(),
                         ad_relevance=round(random.uniform(5.0, 9.0), 1),
                         category="gaming_news",
                         region="global",
@@ -618,7 +618,7 @@ class EventCalendarScraper:
                 trend_direction="rising" if days_left <= 14 else "stable",
                 velocity_score=round(max(30, 90 - days_left * 0.6), 1),
                 published_at=event_date.isoformat(),
-                fetched_at=datetime.utcnow().isoformat(),
+                fetched_at=datetime.now(UTC).isoformat(),
                 ad_relevance=round(min(10, 5 + (90 - days_left) / 15), 1),
                 sentiment_tags=sentiments,
                 recommended_genres=genres,

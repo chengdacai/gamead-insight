@@ -1,21 +1,20 @@
 """
-GameAd Insight - 游戏视频广告灵感平台
+GameAd Insight - 游戏视频广告灵感平台 v5.0
 后端 API 服务 (FastAPI)
 
 功能：
-1. 多源数据抓取（Reddit/TikTok/Google Trends/IP文化/节日）
-2. AI 分析引擎（热点 → 广告创意自动转化）
-3. 按平台分Tab排行榜 + 跨平台综合排行
-4. 后台定时自动刷新（保证实时性）
-5. 灵感收藏
-6. 企业微信推送（预留接口）
+1. App Store 工具类 Top20 榜单 + 变更检测 + 广告创意
+2. 多源热点抓取（Reddit/X/TikTok/Google/IP文化/节日/游戏）
+3. AI 分析引擎（热点 → 广告创意自动转化）
+4. 可视化数据呈现，中英双语
+5. 后台定时自动刷新
 """
 import json
 import os
 import sys
 import threading
 import time as _time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional
 
 # 加载 .env 环境变量
@@ -36,6 +35,7 @@ from pydantic import BaseModel
 
 from services.data_sources import DataAggregator
 from services.ai_analyzer import AIAnalyzer
+from services.app_store_scraper import AppStoreScraper
 from models.topic import HotspotTopic, FilterParams, TopicListResponse
 
 
@@ -59,11 +59,14 @@ app.add_middleware(
 cached_topics: list[HotspotTopic] = []
 last_fetch_time: str = ""
 favorites: dict[str, HotspotTopic] = {}  # id -> topic
+app_store_cache: list[dict] = []
+app_store_last_fetch: str = ""
+app_store_changes: list[dict] = []
 
 # ============ 定时刷新配置 ============
 REFRESH_INTERVAL = 1800  # 30分钟，单位秒
 _auto_refresh_enabled = True
-_next_refresh_time: datetime = datetime.utcnow() + timedelta(seconds=REFRESH_INTERVAL)
+_next_refresh_time: datetime = datetime.now(UTC) + timedelta(seconds=REFRESH_INTERVAL)
 
 
 # ============ 数据抓取 & 缓存 ============
@@ -76,7 +79,7 @@ def refresh_data(force: bool = False):
         if last_fetch_time:
             try:
                 last_dt = datetime.fromisoformat(last_fetch_time)
-                if (datetime.utcnow() - last_dt).total_seconds() < REFRESH_INTERVAL:
+                if (datetime.now(UTC) - last_dt).total_seconds() < REFRESH_INTERVAL:
                     return cached_topics
             except:
                 pass
@@ -89,8 +92,8 @@ def refresh_data(force: bool = False):
 
     # 缓存结果
     cached_topics = analyzed_topics
-    last_fetch_time = datetime.utcnow().isoformat()
-    _next_refresh_time = datetime.utcnow() + timedelta(seconds=REFRESH_INTERVAL)
+    last_fetch_time = datetime.now(UTC).isoformat()
+    _next_refresh_time = datetime.now(UTC) + timedelta(seconds=REFRESH_INTERVAL)
 
     return cached_topics
 
@@ -102,25 +105,30 @@ def _background_refresh_loop():
     while _auto_refresh_enabled:
         _time.sleep(60)  # 每分钟检查一次
         try:
-            now = datetime.utcnow()
+            now = datetime.now(UTC)
             if now >= _next_refresh_time:
                 print(f"[后台定时任务] {now.isoformat()} 自动刷新数据...")
                 refresh_data(force=True)
+                try:
+                    _refresh_app_store(force=True)
+                except Exception as e:
+                    print(f"[后台定时任务] App Store刷新失败: {e}")
                 print(f"[后台定时任务] 刷新完成，下次刷新: {_next_refresh_time.isoformat()}")
         except Exception as e:
             print(f"[后台定时任务] 刷新失败: {e}")
-            _next_refresh_time = datetime.utcnow() + timedelta(seconds=REFRESH_INTERVAL)
+            _next_refresh_time = datetime.now(UTC) + timedelta(seconds=REFRESH_INTERVAL)
 
 
 # ============ 平台元数据 ============
 PLATFORM_META = {
-    "overall":        {"label": "综合排行", "icon": "🏆", "color": "#00B894"},
-    "reddit_hot":     {"label": "Reddit 热帖", "icon": "🔥", "color": "#FF4500"},
-    "twitter_trend":  {"label": "X/Twitter", "icon": "🐦", "color": "#1DA1F2"},
-    "tiktok_trend":   {"label": "TikTok 趋势", "icon": "🎵", "color": "#FF0050"},
-    "google_trends":  {"label": "Google Trends", "icon": "📈", "color": "#4285F4"},
-    "pop_culture_ip": {"label": "流行文化IP", "icon": "🎬", "color": "#E84393"},
-    "seasonal_event": {"label": "节日营销", "icon": "🎉", "color": "#FDCB6E"},
+    "overall":        {"label": "综合排行 / Overview", "icon": "🏆", "color": "#00B894"},
+    "app_store":      {"label": "App Store 榜单 / Rankings", "icon": "📱", "color": "#0A84FF"},
+    "reddit_hot":     {"label": "Reddit 热帖 / Reddit", "icon": "🔥", "color": "#FF4500"},
+    "twitter_trend":  {"label": "X/Twitter 趋势 / X Trends", "icon": "🐦", "color": "#1DA1F2"},
+    "tiktok_trend":   {"label": "TikTok 趋势 / TikTok", "icon": "🎵", "color": "#FF0050"},
+    "google_trends":  {"label": "Google 趋势 / Trends", "icon": "📈", "color": "#4285F4"},
+    "pop_culture_ip": {"label": "流行文化IP / Pop Culture", "icon": "🎬", "color": "#E84393"},
+    "seasonal_event": {"label": "节日营销 / Events", "icon": "🎉", "color": "#FDCB6E"},
 }
 
 
@@ -131,7 +139,7 @@ PLATFORM_META = {
 @app.get("/api/status")
 async def get_status():
     """系统状态：含下次自动刷新时间"""
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     next_refresh = _next_refresh_time
     seconds_left = max(0, (next_refresh - now).total_seconds())
     return {
@@ -317,7 +325,7 @@ async def get_stats():
         "total_topics": len(topics),
         "last_refresh": last_fetch_time,
         "next_refresh": _next_refresh_time.isoformat(),
-        "seconds_until_refresh": max(0, int((_next_refresh_time - datetime.utcnow()).total_seconds())),
+        "seconds_until_refresh": max(0, int((_next_refresh_time - datetime.now(UTC)).total_seconds())),
         "auto_refresh_enabled": _auto_refresh_enabled,
         "refresh_interval": REFRESH_INTERVAL,
         "total_favorites": len(favorites),
@@ -364,6 +372,111 @@ async def get_creative_templates():
     }
 
 
+# ============ App Store 榜单 & 变更检测 API ============
+
+def _refresh_app_store(force: bool = False):
+    """刷新 App Store 数据"""
+    global app_store_cache, app_store_last_fetch, app_store_changes
+
+    if app_store_cache and not force:
+        if app_store_last_fetch:
+            try:
+                last = datetime.fromisoformat(app_store_last_fetch)
+                if (datetime.now(UTC) - last).total_seconds() < 3600:
+                    return app_store_cache, app_store_changes
+            except:
+                pass
+
+    apps = AppStoreScraper.fetch_top20()
+    previous = AppStoreScraper._get_previous_snapshot()
+    prev_apps = previous.get("apps", []) if previous else []
+
+    changes = AppStoreScraper.detect_changes(apps, prev_apps)
+    AppStoreScraper.save_snapshot(apps)
+
+    app_store_cache = apps
+    app_store_last_fetch = datetime.now(UTC).isoformat()
+    app_store_changes = changes
+
+    return apps, changes
+
+
+@app.get("/api/appstore/top20")
+async def get_app_store_top20(
+    sort_by: str = Query("rank", description="排序: rank / rating / changes"),
+):
+    """获取工具类 App Store Top 20 榜单（含变更检测）"""
+    apps, changes = _refresh_app_store()
+
+    # 合并变更信息
+    change_map = {c["app_id"]: c for c in changes}
+    enriched = []
+    for app in apps:
+        entry = dict(app)
+        chg = change_map.get(app["app_id"], {})
+        entry["has_changes"] = chg.get("has_changes", False)
+        entry["alert_level"] = chg.get("alert_level", "none")
+        entry["changes"] = chg.get("changes", [])
+        entry["rank_previous"] = chg.get("rank_previous")
+        enriched.append(entry)
+
+    # 排序
+    if sort_by == "rating":
+        enriched.sort(key=lambda x: x.get("rating", 0), reverse=True)
+    elif sort_by == "changes":
+        enriched.sort(key=lambda x: len(x.get("changes", [])), reverse=True)
+
+    # 统计
+    has_changes = sum(1 for e in enriched if e["has_changes"])
+    critical = sum(1 for e in enriched if e["alert_level"] == "critical")
+    warnings = sum(1 for e in enriched if e["alert_level"] == "warning")
+
+    return {
+        "total": len(enriched),
+        "has_changes_count": has_changes,
+        "critical_count": critical,
+        "warning_count": warnings,
+        "fetched_at": app_store_last_fetch,
+        "apps": enriched,
+    }
+
+
+@app.get("/api/appstore/changes")
+async def get_app_store_changes():
+    """获取仅含变更的榜单（变更提醒）"""
+    _, changes = _refresh_app_store()
+    changed_only = [c for c in changes if c.get("has_changes")]
+    critical = [c for c in changed_only if c.get("alert_level") == "critical"]
+    warnings = [c for c in changed_only if c.get("alert_level") == "warning"]
+    return {
+        "total_changed": len(changed_only),
+        "critical": len(critical),
+        "warnings": len(warnings),
+        "changes": changed_only,
+    }
+
+
+@app.get("/api/appstore/app/{app_id}")
+async def get_app_detail(app_id: str):
+    """获取单个 App 详情 + 广告创意思路"""
+    apps, _ = _refresh_app_store()
+    for app in apps:
+        if app.get("app_id") == app_id:
+            ideas = AppStoreScraper.get_creative_ideas(app)
+            return {
+                "app": app,
+                "creative_ideas": ideas,
+            }
+    raise HTTPException(status_code=404, detail=f"App {app_id} not found")
+
+
+@app.get("/api/creative/tools")
+async def get_tools_creative_templates():
+    """获取工具类 APP 广告创意模板"""
+    from services.app_store_scraper import TOOLS_AD_TEMPLATES
+    return {"templates": TOOLS_AD_TEMPLATES}
+
+
 # ============ 静态文件服务（生产部署） ============
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
@@ -393,15 +506,17 @@ if __name__ == "__main__":
     print("=" * 60)
     print("  GameAd Insight v5.0 - 游戏视频广告灵感平台")
     print("  后端服务启动中...")
+    print("  [OK] App Store 工具类Top20榜单 + 变更检测")
     print("  [OK] 7大数据源: Reddit/X/TikTok/Google/IP/游戏/节日")
     print("  [OK] 后台定时刷新: 每30分钟自动更新")
-    print("  [OK] 平台分Tab排行 + 跨平台综合排行")
-    print("  [OK] 爆款案例库 + 创意指数评分")
+    print("  [OK] 工具类APP广告创意模板")
     print("=" * 60)
 
     # 预热：启动时立即抓取一次数据
     print("\n[预热] 正在首次抓取数据...")
     refresh_data(force=True)
+    print("[预热] 正在抓取 App Store 榜单...")
+    _refresh_app_store(force=True)
 
     # 启动后台定时刷新线程
     refresh_thread = threading.Thread(target=_background_refresh_loop, daemon=True)
