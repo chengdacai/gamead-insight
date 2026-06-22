@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import Dashboard from './pages/Dashboard'
 import AppStore from './pages/AppStore'
+import StoreRanking from './pages/StoreRanking'
+import AdLibrary from './pages/AdLibrary'
 import Trends from './pages/Trends'
 import Creative from './pages/Creative'
 import AppDetail from './pages/AppDetail'
@@ -10,10 +12,12 @@ const API_BASE = window.location.hostname === 'localhost' ? '/api' : '/api'
 
 // Sidebar nav items
 const NAV_ITEMS = [
-  { path: '/', label: '仪表盘', labelEn: 'Dashboard', icon: '⊡' },
-  { path: '/appstore', label: 'App Store 监控', labelEn: 'App Store Monitor', icon: '⬡' },
-  { path: '/trends', label: '热点趋势', labelEn: 'Trends', icon: '✦' },
-  { path: '/creative', label: '广告创意', labelEn: 'Creative Ideas', icon: '◆' },
+  { path: '/',           label: '仪表盘', labelEn: 'Dashboard',     icon: '⬡' },
+  { path: '/appstore',   label: 'App Store', labelEn: 'App Store',     icon: '📱' },
+  { path: '/ranking',    label: '商店榜单', labelEn: 'Store Ranking', icon: '📊' },
+  { path: '/ads',         label: '广告素材库', labelEn: 'Ad Library',    icon: '▶' },
+  { path: '/trends',     label: '热点趋势', labelEn: 'Trends',         icon: '✦' },
+  { path: '/creative',   label: '创意模板', labelEn: 'Creative',      icon: '◆' },
 ]
 
 export default function App() {
@@ -92,6 +96,8 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/appstore" element={<AppStore />} />
             <Route path="/appstore/:appId" element={<AppDetail />} />
+            <Route path="/ranking" element={<StoreRanking />} />
+            <Route path="/ads" element={<AdLibrary />} />
             <Route path="/trends" element={<Trends />} />
             <Route path="/creative" element={<Creative />} />
           </Routes>

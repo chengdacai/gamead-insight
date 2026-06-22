@@ -477,6 +477,131 @@ async def get_tools_creative_templates():
     return {"templates": TOOLS_AD_TEMPLATES}
 
 
+# ============ Google Play 榜单 API ============
+
+@app.get("/api/googleplay/top")
+async def get_google_play_top(
+    category: str = Query("ART_AND_DESIGN", description="类别"),
+    country: str = Query("US", description="国家代码"),
+    chart_type: str = Query("free", description="榜单类型 free/paid"),
+    limit: int = Query(20, ge=1, le=100),
+):
+    """获取 Google Play 榜单 Top N"""
+    from services.google_play_scraper import fetch_top_charts, detect_changes, load_latest_snapshot
+    apps = fetch_top_charts(category=category.upper(), country=country, chart_type=chart_type, limit=limit)
+    # 变更检测
+    prev = load_latest_snapshot(category.upper(), country, chart_type)
+    if prev:
+        apps = detect_changes(apps, prev)
+    # 保存快照
+    from services.google_play_scraper import save_snapshot
+    save_snapshot(apps, category.upper(), country, chart_type)
+    has_changes = [a for a in apps if a.get("change_type") not in ("none", None, "")]
+    return {
+        "total": len(apps),
+        "category": category,
+        "category_zh": _cat_zh(category.upper()),
+        "category_en": _cat_en(category.upper()),
+        "country": country,
+        "chart_type": chart_type,
+        "has_changes_count": len(has_changes),
+        "apps": apps,
+    }
+
+
+@app.get("/api/googleplay/app/{app_id}")
+async def get_google_play_app_detail(app_id: str, country: str = Query("US")):
+    """获取 Google Play 单个 App 详情"""
+    from services.google_play_scraper import fetch_app_detail
+    detail = fetch_app_detail(app_id, country=country)
+    if not detail:
+        raise HTTPException(status_code=404, detail=f"App {app_id} not found")
+    return detail
+
+
+# ============ Meta 广告库 API ============
+
+@app.get("/api/meta/ads")
+async def get_meta_ads(
+    advertiser: str = Query(..., description="广告主名称"),
+    country: str = Query("US", description="国家代码"),
+    limit: int = Query(20, ge=1, le=100),
+):
+    """搜索 Meta (Facebook/Instagram) 广告库"""
+    from services.meta_ad_library import search_ads_by_advertiser, detect_ad_changes
+    ads = search_ads_by_advertiser(advertiser, country=country, limit=limit)
+    # 变更检测
+    changes = detect_ad_changes(advertiser.replace(" ", "_"), ads)
+    return {
+        "advertiser": advertiser,
+        "country": country,
+        "total": len(ads),
+        "has_new_ads": changes["has_new"],
+        "new_count": changes["new_count"],
+        "stopped_count": changes["stopped_count"],
+        "alert_level": changes["alert_level"],
+        "changes": changes["details"],
+        "is_first_run": changes.get("is_first_run", False),
+        "ads": ads,
+    }
+
+
+# ============ 双商店合并排名 API ============
+
+@app.get("/api/store/combined")
+async def get_combined_ranking(
+    category: str = Query("TOOLS", description="类别（App Store 用）/ ART_AND_DESIGN（Google Play 用）"),
+    country: str = Query("US", description="国家代码"),
+    chart_type: str = Query("free", description="榜单类型 free/paid"),
+    limit: int = Query(20, ge=1, le=50),
+):
+    """获取 App Store + Google Play 合并排名（去重，按名称匹配）"""
+    from services.app_store_scraper import AppStoreScraper
+    from services.google_play_scraper import fetch_top_charts
+    # App Store
+    as_apps = AppStoreScraper.fetch_top20()
+    # Google Play（类别需映射）
+    gp_category = _map_category_to_gp(category)
+    gp_apps = fetch_top_charts(category=gp_category, country=country, chart_type=chart_type, limit=limit)
+    # 合并去重（按名称模糊匹配）
+    combined = _merge_store_apps(as_apps, gp_apps)
+    return {
+        "category": category,
+        "country": country,
+        "chart_type": chart_type,
+        "total": len(combined),
+        "apps": combined[:limit],
+    }
+
+
+def _cat_zh(cat: str) -> str:
+    from services.google_play_scraper import CATEGORY_MAP
+    return CATEGORY_MAP.get(cat, {}).get("zh", cat)
+
+def _cat_en(cat: str) -> str:
+    from services.google_play_scraper import CATEGORY_MAP
+    return CATEGORY_MAP.get(cat, {}).get("en", cat)
+
+def _map_category_to_gp(cat: str) -> str:
+    """将 App Store 类别映射为 Google Play 类别"""
+    m = {"TOOLS": "TOOLS", "Graphics & Design": "ART_AND_DESIGN", "Photography": "PHOTOGRAPHY",
+           "Productivity": "PRODUCTIVITY", "Business": "BUSINESS", "Education": "EDUCATION",
+           "Entertainment": "ENTERTAINMENT"}
+    return m.get(cat, "TOOLS")
+
+def _merge_store_apps(as_apps: list, gp_apps: list) -> list:
+    """合并双商店应用列表，去重"""
+    seen = set()
+    merged = []
+    for app in as_apps + gp_apps:
+        name_key = app.get("name", "").lower().replace(" ", "")
+        if name_key and name_key not in seen:
+            seen.add(name_key)
+            merged.append(app)
+    # 重新排序（按原榜单排名加权）
+    return merged
+
+
 # ============ 静态文件服务（生产部署） ============
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 

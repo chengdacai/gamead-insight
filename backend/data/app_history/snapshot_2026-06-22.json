@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-22T12:23:00.465562+00:00",
+  "timestamp": "2026-06-22T16:07:13.156751",
   "total": 20,
   "apps": [
     {
@@ -98,29 +98,46 @@
     },
     {
       "rank": 5,
-      "app_id": "1396698319",
-      "name": "Necrophonic",
-      "developer": "chris rogers",
+      "app_id": "6449003064",
+      "name": "Goblin Tools",
+      "developer": "Skyhook",
       "category": "Utilities",
-      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple122/v4/8f/7c/3d/8f7c3dcc-e440-badb-045f-77b772d1c15c/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.png",
-      "price": 9.99,
-      "summary": "Necrophonic is an ITC app used for spirit communication and EVP research.\n\n8 Sounds Banks:\n\nThe audio has been mastered in a way to bring out various sound properties . \nUsing Pro Tools I was able to ",
-      "release_date": "2018-07-24T22:43:03-07:00",
-      "version": "1.7",
-      "description": "Necrophonic is an ITC app used for spirit communication and EVP research.\n\n8 Sounds Banks:\n\nThe audio has been mastered in a way to bring out various sound properties . \nUsing Pro Tools I was able to enhance high, mid, and low range frequencies. I also applied \nother filters to create unique sound characteristics to help layer the audio and create an \nenvironment suitable for spirit communication.\n\nThe audio itself is made up of phonemes, \npartial words, reverse audio, foreign languages, and other parts of speech that can help \nspirits communicate. Besides some basic phonetic sounds such as na, no, da, do, di, ma, may, etc.\nthere are no real words of phrases contained in the banks.\n\nThese sounds banks play in a similar\nway to that of my other app \"Spiritus Ghost Box\" but instead of 4 sound banks Necrophonic has\n8 active sound banks.\n\nWhite Noise Sound Bank:\n\nThis app also has an optional 9th sound bank called \"White noise\". \nThis bank can be used alone or with the other 8 giving you a total of 9 sound banks. This \naudio is taken for the internal sounds of the famous DR60 recorder that is known as the \n\"Holy Grail\" of EVP recorders. This is not a White Noise Generator, this is a normal sound bank like the others but this one contains white noise from the DR60.\n\nAudio Effects:\n\nThis app does contain Echo and Reverb audio effects. These have been proven \nto be the best effects to apply to ITC sessions. The echo can create audio that can be \nmanipulated within the echo itself. Echo can also help in live, real time communication by \nrepeating the audio and allowing you to better hear whats coming through. Reverb can be \napplied to the audio to create a spacious sound environment that will enhance audio manipulation.",
+      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/98/d1/49/98d149b0-645a-7cf4-fb16-3948ff3dd471/AppIcon-1x_U007emarketing-0-10-0-85-220.png/100x100bb.png",
+      "price": 2.99,
+      "summary": "This is an app version of the free website goblin.tools, a collection of small, simple, single-task tools, mostly designed to help neurodivergent people with tasks they find overwhelming or difficult.",
+      "release_date": "2023-05-31T00:00:00-07:00",
+      "version": "1.1",
+      "description": "This is an app version of the free website goblin.tools, a collection of small, simple, single-task tools, mostly designed to help neurodivergent people with tasks they find overwhelming or difficult.\n\n\n\nTools include\n- A Magic Todo list that automatically breaks down tasks into steps\n- The Formalizer that transforms your language to be more formal, sociable, concise, or many other options\n- The Judge that helps with interpreting tone\n- The Estimator that can guess at a timeframe for an activity\n- The Compiler to take entire braindumps and turn them into actionable tasks\n- The Chef, who turns a description of what ingredients and tools you have in your kitchen into a real recipe\n\n\n\nAnd many more to come!\n\n\n\nThe website is free and publicly available. Purchases of this app go first towards keeping the site free and ad-free, before supporting the author.",
       "screenshots": [
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/dc/4a/dc/dc4adc74-172e-bb26-c8ac-f6df53aae235/4bf6f779-69cd-43a6-a8fa-4ba918bb5d39_2208x1242-screenshot.png/406x228bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/3c/83/45/3c834513-d2e2-8b9d-2ec6-d810129ff875/3c2dff56-b2e8-4585-bcf8-13ec972b2ee2_2208x1242-screenshot__U00281_U0029.png/406x228bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/3b/a7/fc/3ba7fc16-f735-e2ea-b2f8-0fe620a2d624/b69d2b0f-9269-4aff-8531-fe499501b816_2208x1242-screenshot__U00282_U0029.png/406x228bb.png"
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource116/v4/dd/25/3e/dd253ed9-8f15-3fa1-1c84-44cb49326a34/30e52f3b-a155-4043-b758-23a38e1d4488_IMG_0012.PNG/392x696bb.png"
       ],
-      "rating": 3.77376,
-      "rating_count": 526,
-      "bundle_id": "com.ChillSeekers.Necrophonic",
+      "rating": 4.77975,
+      "rating_count": 2933,
+      "bundle_id": "com.goblintools",
       "seller_url": "",
-      "size_bytes": 102253568
+      "size_bytes": 662528
     },
     {
       "rank": 6,
+      "app_id": "6756966178",
+      "name": "V2Box Pro - V2ray Client",
+      "developer": "Hexa Software",
+      "category": "Utilities",
+      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a2/96/e3/a296e364-41c5-c772-dccc-10a4ff151c28/V2boxPro-0-0-1x_U007epad-0-1-sRGB-85-220.png/100x100bb.png",
+      "price": 2.99,
+      "summary": "V2box Pro - VPN Internet network proxy , Supports multiple proxy protocols, such as Shadowsocks, V2ray, Vmess, Trojan , SSH , Socks, hysteria2, Ping Tunnel, Wireguard, DNSTT\n\n\n\nFeatures:\n\n- Support fo",
+      "release_date": "2026-05-16T00:00:00-07:00",
+      "version": "10.1.2",
+      "description": "V2box Pro - VPN Internet network proxy , Supports multiple proxy protocols, such as Shadowsocks, V2ray, Vmess, Trojan , SSH , Socks, hysteria2, Ping Tunnel, Wireguard, DNSTT\n\n\n\nFeatures:\n\n- Support for adding custom servers proxy (Shadowsocks, v2ray, trojan, vless, vmess, SSH, hysteria2, Ping Tunnel, Wireguard)\n- Support Reality (xray)\n- Support vless vision\n- Support utls\n- Support SSH with UDP Gateway (udpgw)\n\n- Network Combiner, Improve speed and stability (Merge WiFi & Cellular)\n- Stop on Sleep (Improve Battery usage)\n- Share on Local SOCKS5 / HTTP (accessible over network)\n- Custom DNS setup (DOU,DOH,DOT)\n- Custom Flexible Routing\n\n\n\n- Multiple encryption protocol support, AES-128-GCM, AES-192-GCM, AES-256-GCM, Chacha20-IETF, Chacha20 - ietf - poly1305, xchacha20 ietf -- poly1305\n\n- Stealth and stable, no need to log in and register, easy to use\n\n- Does not save any user log information\n\n- Wi-Fi Security when using Public Hotspots\n\n- Protect your network IP and privacy security\n\n- Unmatched network speed and performance\n\n\n\n\nTerms of Services: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n\nPrivacy Policy: https://hexasoftware.dev/v2box-terms/",
+      "screenshots": [],
+      "rating": 4.30556,
+      "rating_count": 36,
+      "bundle_id": "dev.hexasoftware.V2Box",
+      "seller_url": "https://hexasoftware.dev/",
+      "size_bytes": 147493888
+    },
+    {
+      "rank": 7,
       "app_id": "1356726417",
       "name": "ForzaTune Pro",
       "developer": "Crosswise Ventures, LLC",
@@ -145,71 +162,30 @@
       "size_bytes": 27488256
     },
     {
-      "rank": 7,
-      "app_id": "6449003064",
-      "name": "Goblin Tools",
-      "developer": "Skyhook",
-      "category": "Utilities",
-      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/98/d1/49/98d149b0-645a-7cf4-fb16-3948ff3dd471/AppIcon-1x_U007emarketing-0-10-0-85-220.png/100x100bb.png",
-      "price": 2.99,
-      "summary": "This is an app version of the free website goblin.tools, a collection of small, simple, single-task tools, mostly designed to help neurodivergent people with tasks they find overwhelming or difficult.",
-      "release_date": "2023-05-31T00:00:00-07:00",
-      "version": "1.1",
-      "description": "This is an app version of the free website goblin.tools, a collection of small, simple, single-task tools, mostly designed to help neurodivergent people with tasks they find overwhelming or difficult.\n\n\n\nTools include\n- A Magic Todo list that automatically breaks down tasks into steps\n- The Formalizer that transforms your language to be more formal, sociable, concise, or many other options\n- The Judge that helps with interpreting tone\n- The Estimator that can guess at a timeframe for an activity\n- The Compiler to take entire braindumps and turn them into actionable tasks\n- The Chef, who turns a description of what ingredients and tools you have in your kitchen into a real recipe\n\n\n\nAnd many more to come!\n\n\n\nThe website is free and publicly available. Purchases of this app go first towards keeping the site free and ad-free, before supporting the author.",
-      "screenshots": [
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource116/v4/dd/25/3e/dd253ed9-8f15-3fa1-1c84-44cb49326a34/30e52f3b-a155-4043-b758-23a38e1d4488_IMG_0012.PNG/392x696bb.png"
-      ],
-      "rating": 4.77975,
-      "rating_count": 2933,
-      "bundle_id": "com.goblintools",
-      "seller_url": "",
-      "size_bytes": 662528
-    },
-    {
       "rank": 8,
-      "app_id": "6756966178",
-      "name": "V2Box Pro - V2ray Client",
-      "developer": "Hexa Software",
+      "app_id": "1396698319",
+      "name": "Necrophonic",
+      "developer": "chris rogers",
       "category": "Utilities",
-      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a2/96/e3/a296e364-41c5-c772-dccc-10a4ff151c28/V2boxPro-0-0-1x_U007epad-0-1-sRGB-85-220.png/100x100bb.png",
-      "price": 2.99,
-      "summary": "V2box Pro - VPN Internet network proxy , Supports multiple proxy protocols, such as Shadowsocks, V2ray, Vmess, Trojan , SSH , Socks, hysteria2, Ping Tunnel, Wireguard, DNSTT\n\n\n\nFeatures:\n\n- Support fo",
-      "release_date": "2026-05-16T00:00:00-07:00",
-      "version": "10.1.2",
-      "description": "V2box Pro - VPN Internet network proxy , Supports multiple proxy protocols, such as Shadowsocks, V2ray, Vmess, Trojan , SSH , Socks, hysteria2, Ping Tunnel, Wireguard, DNSTT\n\n\n\nFeatures:\n\n- Support for adding custom servers proxy (Shadowsocks, v2ray, trojan, vless, vmess, SSH, hysteria2, Ping Tunnel, Wireguard)\n- Support Reality (xray)\n- Support vless vision\n- Support utls\n- Support SSH with UDP Gateway (udpgw)\n\n- Network Combiner, Improve speed and stability (Merge WiFi & Cellular)\n- Stop on Sleep (Improve Battery usage)\n- Share on Local SOCKS5 / HTTP (accessible over network)\n- Custom DNS setup (DOU,DOH,DOT)\n- Custom Flexible Routing\n\n\n\n- Multiple encryption protocol support, AES-128-GCM, AES-192-GCM, AES-256-GCM, Chacha20-IETF, Chacha20 - ietf - poly1305, xchacha20 ietf -- poly1305\n\n- Stealth and stable, no need to log in and register, easy to use\n\n- Does not save any user log information\n\n- Wi-Fi Security when using Public Hotspots\n\n- Protect your network IP and privacy security\n\n- Unmatched network speed and performance\n\n\n\n\nTerms of Services: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n\nPrivacy Policy: https://hexasoftware.dev/v2box-terms/",
-      "screenshots": [],
-      "rating": 4.30556,
-      "rating_count": 36,
-      "bundle_id": "dev.hexasoftware.V2Box",
-      "seller_url": "https://hexasoftware.dev/",
-      "size_bytes": 147493888
+      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple122/v4/8f/7c/3d/8f7c3dcc-e440-badb-045f-77b772d1c15c/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.png",
+      "price": 9.99,
+      "summary": "Necrophonic is an ITC app used for spirit communication and EVP research.\n\n8 Sounds Banks:\n\nThe audio has been mastered in a way to bring out various sound properties . \nUsing Pro Tools I was able to ",
+      "release_date": "2018-07-24T22:43:03-07:00",
+      "version": "1.7",
+      "description": "Necrophonic is an ITC app used for spirit communication and EVP research.\n\n8 Sounds Banks:\n\nThe audio has been mastered in a way to bring out various sound properties . \nUsing Pro Tools I was able to enhance high, mid, and low range frequencies. I also applied \nother filters to create unique sound characteristics to help layer the audio and create an \nenvironment suitable for spirit communication.\n\nThe audio itself is made up of phonemes, \npartial words, reverse audio, foreign languages, and other parts of speech that can help \nspirits communicate. Besides some basic phonetic sounds such as na, no, da, do, di, ma, may, etc.\nthere are no real words of phrases contained in the banks.\n\nThese sounds banks play in a similar\nway to that of my other app \"Spiritus Ghost Box\" but instead of 4 sound banks Necrophonic has\n8 active sound banks.\n\nWhite Noise Sound Bank:\n\nThis app also has an optional 9th sound bank called \"White noise\". \nThis bank can be used alone or with the other 8 giving you a total of 9 sound banks. This \naudio is taken for the internal sounds of the famous DR60 recorder that is known as the \n\"Holy Grail\" of EVP recorders. This is not a White Noise Generator, this is a normal sound bank like the others but this one contains white noise from the DR60.\n\nAudio Effects:\n\nThis app does contain Echo and Reverb audio effects. These have been proven \nto be the best effects to apply to ITC sessions. The echo can create audio that can be \nmanipulated within the echo itself. Echo can also help in live, real time communication by \nrepeating the audio and allowing you to better hear whats coming through. Reverb can be \napplied to the audio to create a spacious sound environment that will enhance audio manipulation.",
+      "screenshots": [
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/dc/4a/dc/dc4adc74-172e-bb26-c8ac-f6df53aae235/4bf6f779-69cd-43a6-a8fa-4ba918bb5d39_2208x1242-screenshot.png/406x228bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/3c/83/45/3c834513-d2e2-8b9d-2ec6-d810129ff875/3c2dff56-b2e8-4585-bcf8-13ec972b2ee2_2208x1242-screenshot__U00281_U0029.png/406x228bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/3b/a7/fc/3ba7fc16-f735-e2ea-b2f8-0fe620a2d624/b69d2b0f-9269-4aff-8531-fe499501b816_2208x1242-screenshot__U00282_U0029.png/406x228bb.png"
+      ],
+      "rating": 3.77376,
+      "rating_count": 526,
+      "bundle_id": "com.ChillSeekers.Necrophonic",
+      "seller_url": "",
+      "size_bytes": 102253568
     },
     {
       "rank": 9,
-      "app_id": "1670762759",
-      "name": "Necrometer",
-      "developer": "chris rogers",
-      "category": "Utilities",
-      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/ed/e7/9d/ede79d99-8f0e-eed7-3f69-e83d0138d0c0/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/100x100bb.png",
-      "price": 9.99,
-      "summary": "Necrometer\n\nDesigned for ghost hunters and paranormal enthusiasts. This multifunctional app can be used to detect and communicate with spirits. We have taken known spirit communication techniques and ",
-      "release_date": "2023-05-25T00:00:00-07:00",
-      "version": "1.3",
-      "description": "Necrometer\n\nDesigned for ghost hunters and paranormal enthusiasts. This multifunctional app can be used to detect and communicate with spirits. We have taken known spirit communication techniques and theories and have implemented them here in new and innovative ways. \n\n-Meter that detects and measures magnetic energy\n-Text and Speech modes\n-2 Built in Text To Speech A.I. systems\n-3 Voices\n-Pitch control with randomization option\n-Reverb and Echo audio effects\n\nThe Meter:\nIt is believed that spirits can affect magnetic energy fields. Using your phone’s Magnetometer sensor this app can detect levels of magnetic interference in the environment. These fluctuations of energy fields have a direct influence on the communication.\n-Meter noise (optional) reacts to fluctuations in the meter\n\nText Mode:\nSimply slide the power button over to \"Text\" and begin asking your questions. Walking around a location you can detect energy anomalies and various levels of magnetic interference. Words and phrases will begin coming through the app. The relevance of the communication is determined by multiple factors including spirit connection and strength. Those who have a stronger connection to the otherside may experience more direct and relevant communication. \nSimilar to the famous Ovilus ITC device, the Necrometer app is designed to facilitate spirit communication by measuring fluctuations of energy in the environment. The idea that spirits can manipulate electronic devices for purposes of communication is well documented. Based on the theory of random selection and known evidence of energy manipulation, the Necrometer app utilizes these known methods of spirit communication and paranormal phenomena. \n-Access to over 60k words/phrases\n-Custom word list, Add your own words and phrases\n\nSpeech Mode:\nSliding the power button over to \"Speech\" will turn on this unique mode of the app. Created to facilitate ghost box/ EVP like communication, the speech mode of the app provides audible spirit ",
-      "screenshots": [
-        "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/79/7b/e9/797be9e6-7725-7388-5851-bc33cd04912d/0561f117-d91f-4103-a150-f1883ca3f01a_fiveinch6.png/392x696bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/30/47/a1/3047a141-62d3-2039-a215-a4ef4bb5b610/6ffdc9b2-b162-41fb-a927-2cb7a6d2d473_fiveinch2.png/392x696bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/cf/aa/57/cfaa57ac-997b-6df4-8bee-f0c8a53893f7/efaaff1b-36bf-4bbe-b13d-5d12c662aa30_fiveinch1.png/392x696bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/a4/23/f0/a423f043-046e-053f-e33f-5dfe9520762b/ed9a8bdf-570b-4130-9161-3be0feae73af_fiveinch4.png/392x696bb.png"
-      ],
-      "rating": 2.77652,
-      "rating_count": 264,
-      "bundle_id": "com.BitPlague.Necrometer",
-      "seller_url": "",
-      "size_bytes": 181947392
-    },
-    {
-      "rank": 10,
       "app_id": "1596063349",
       "name": "Stash - Rule Based Proxy",
       "developer": "STASH NETWORKS LIMITED",
@@ -231,6 +207,30 @@
       "bundle_id": "ws.stash.app",
       "seller_url": "",
       "size_bytes": 118328320
+    },
+    {
+      "rank": 10,
+      "app_id": "1670762759",
+      "name": "Necrometer",
+      "developer": "chris rogers",
+      "category": "Utilities",
+      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/ed/e7/9d/ede79d99-8f0e-eed7-3f69-e83d0138d0c0/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/100x100bb.png",
+      "price": 9.99,
+      "summary": "Necrometer\n\nDesigned for ghost hunters and paranormal enthusiasts. This multifunctional app can be used to detect and communicate with spirits. We have taken known spirit communication techniques and ",
+      "release_date": "2023-05-25T00:00:00-07:00",
+      "version": "1.3",
+      "description": "Necrometer\n\nDesigned for ghost hunters and paranormal enthusiasts. This multifunctional app can be used to detect and communicate with spirits. We have taken known spirit communication techniques and theories and have implemented them here in new and innovative ways. \n\n-Meter that detects and measures magnetic energy\n-Text and Speech modes\n-2 Built in Text To Speech A.I. systems\n-3 Voices\n-Pitch control with randomization option\n-Reverb and Echo audio effects\n\nThe Meter:\nIt is believed that spirits can affect magnetic energy fields. Using your phone’s Magnetometer sensor this app can detect levels of magnetic interference in the environment. These fluctuations of energy fields have a direct influence on the communication.\n-Meter noise (optional) reacts to fluctuations in the meter\n\nText Mode:\nSimply slide the power button over to \"Text\" and begin asking your questions. Walking around a location you can detect energy anomalies and various levels of magnetic interference. Words and phrases will begin coming through the app. The relevance of the communication is determined by multiple factors including spirit connection and strength. Those who have a stronger connection to the otherside may experience more direct and relevant communication. \nSimilar to the famous Ovilus ITC device, the Necrometer app is designed to facilitate spirit communication by measuring fluctuations of energy in the environment. The idea that spirits can manipulate electronic devices for purposes of communication is well documented. Based on the theory of random selection and known evidence of energy manipulation, the Necrometer app utilizes these known methods of spirit communication and paranormal phenomena. \n-Access to over 60k words/phrases\n-Custom word list, Add your own words and phrases\n\nSpeech Mode:\nSliding the power button over to \"Speech\" will turn on this unique mode of the app. Created to facilitate ghost box/ EVP like communication, the speech mode of the app provides audible spirit ",
+      "screenshots": [
+        "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/79/7b/e9/797be9e6-7725-7388-5851-bc33cd04912d/0561f117-d91f-4103-a150-f1883ca3f01a_fiveinch6.png/392x696bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/30/47/a1/3047a141-62d3-2039-a215-a4ef4bb5b610/6ffdc9b2-b162-41fb-a927-2cb7a6d2d473_fiveinch2.png/392x696bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/cf/aa/57/cfaa57ac-997b-6df4-8bee-f0c8a53893f7/efaaff1b-36bf-4bbe-b13d-5d12c662aa30_fiveinch1.png/392x696bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/a4/23/f0/a423f043-046e-053f-e33f-5dfe9520762b/ed9a8bdf-570b-4130-9161-3be0feae73af_fiveinch4.png/392x696bb.png"
+      ],
+      "rating": 2.77652,
+      "rating_count": 264,
+      "bundle_id": "com.BitPlague.Necrometer",
+      "seller_url": "",
+      "size_bytes": 181947392
     },
     {
       "rank": 11,
@@ -272,6 +272,31 @@
     },
     {
       "rank": 13,
+      "app_id": "1443988620",
+      "name": "Quantumult X",
+      "developer": "Cross Utility Ltd",
+      "category": "Utilities",
+      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/ac/a4/ca/aca4cafb-ab1d-347f-0bdf-8aa08cbe1232/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/100x100bb.png",
+      "price": 9.99,
+      "summary": "Quantumult completely rebuilt from scratch, and includes a lots of awesome new features!\n\nQuantumult X is a powerful network tool for web developers and users who need to customize their proxies.\n\nFor",
+      "release_date": "2019-10-11T00:00:00-07:00",
+      "version": "1.6.0",
+      "description": "Quantumult completely rebuilt from scratch, and includes a lots of awesome new features!\n\nQuantumult X is a powerful network tool for web developers and users who need to customize their proxies.\n\nFor web develpers:\n- HTTP activity can record the whole HTTP request and response including body(HTTP debug should be enabled).\n- The MitM HTTP decryption can work for the traffics from TUN interface(MitM should be enabled).\n- HTTP rewrite with URL 302/307 redirect or request header/body modification or response header/body modification(Rewrite should be enabled).\n- Customized DNS settings for specific domains(IPv4 or IPv6),  only can be edited in configuration profile.\n\nFor users who need to customize their proxies:\n- Supports shadowsocks proxy protocol.\n- Supports shadowsocks with obfs-tls or obfs-http plugins.\n- Supports shadowsocks over websocket and tls(server side should be deployed by v2ray-core).\n- Supports UDP relay if the server supports it.\n- Supports different policies for network request by using customized filters(host, host suffix, host keyword...).\n\nPrivacy Policy: https://quantumult.app/x/privacy/\nContact Us: support@quantumult.app",
+      "screenshots": [
+        "https://is1-ssl.mzstatic.com/image/thumb/Purple123/v4/da/c5/f6/dac5f6ce-ca8a-fb31-0c5b-6885359d0d8d/pr_source.png/392x696bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/Purple123/v4/8a/3d/55/8a3d55a4-e6be-3bd8-033a-a636bb0ff212/pr_source.png/392x696bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/Purple123/v4/1c/f6/86/1cf6861a-7431-aa18-7be2-04a58c26f9fc/pr_source.png/392x696bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/Purple123/v4/49/ed/14/49ed14e0-bd7e-1a89-389b-0ebf013ca59d/pr_source.png/392x696bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/Purple123/v4/11/b7/6f/11b76f2a-765b-b352-f665-2a4c8624437c/pr_source.png/392x696bb.png"
+      ],
+      "rating": 3.8173,
+      "rating_count": 1653,
+      "bundle_id": "com.crossutility.quantumult-x",
+      "seller_url": "https://quantumult.app/x",
+      "size_bytes": 60488704
+    },
+    {
+      "rank": 14,
       "app_id": "6780166484",
       "name": "SIMKit",
       "developer": "文杰 茅",
@@ -290,7 +315,7 @@
       "size_bytes": 48999424
     },
     {
-      "rank": 14,
+      "rank": 15,
       "app_id": "6754986970",
       "name": "RPGPlayer - An RPGMaker Player",
       "developer": "Emir Han Temur",
@@ -309,7 +334,7 @@
       "size_bytes": 81725440
     },
     {
-      "rank": 15,
+      "rank": 16,
       "app_id": "6759248276",
       "name": "esimSubscription",
       "developer": "文杰 茅",
@@ -328,7 +353,7 @@
       "size_bytes": 48598016
     },
     {
-      "rank": 16,
+      "rank": 17,
       "app_id": "1589391989",
       "name": "Mapper for Safari",
       "developer": "Alex Kitcoff",
@@ -345,31 +370,6 @@
       "bundle_id": "com.alexkitcoff.mapopener",
       "seller_url": "https://alexkitcoff.com/mapper-for-safari/",
       "size_bytes": 1213440
-    },
-    {
-      "rank": 17,
-      "app_id": "6461348120",
-      "name": "R8 Companion",
-      "developer": "Angela Mcarthur",
-      "category": "Utilities",
-      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/8e/0b/c1/8e0bc195-19c5-0323-2418-e9f96b36e4e9/AppIcon-0-0-1x_U007ephone-0-1-sRGB-85-220.png/100x100bb.png",
-      "price": 9.99,
-      "summary": "The R8 Companion™ app leverages 5+ years of historical data in its acclaimed 'Advanced False Assist' filtering engine, detector optimizations and shared features from the Radar Companion™ series of ap",
-      "release_date": "2023-08-18T00:00:00-07:00",
-      "version": "1.33.11",
-      "description": "The R8 Companion™ app leverages 5+ years of historical data in its acclaimed 'Advanced False Assist' filtering engine, detector optimizations and shared features from the Radar Companion™ series of apps. (Available separately for owners of the V1, R4, R9, & DS1 radar detectors).  The filtering engine is updated on a regular basis from accumulated real world usage data for better filtering against falses, and protection against real threats.\n\nR8 Companion™ is a feature rich app, designed to give you the most out of your R8, while enhancing your driving experience along the way. It is extremely easy to get up and running.  Featuring intelligent alerts and advanced muting! R8 Companion™ is the COMPLETE solution to enjoying your R8.  \n\nNOTE: R8 Companion™ requires a Uniden R8 or R8w radar detector with US Version 141 (R8) or 137 (R8w) firmware (or earlier) to function correctly. R8 Companion will NOT function correctly without the appropriate firmware for each detector.\n\nEnhanced GPS location based 'false muting' via SpotLocks - All future updates to this app are free to purchasers of R8 Companion.\n\nR8 Companion's alerting and muting systems are fully optimized for the R8 platform. Intelligent voice announcements and on-screen visuals will always keep you informed and aware of the situation around you. \n\nR8 Companion full feature list:\n• SpotLocks - Location based false silencing has never been this good or easy. Turn on the intelligent location-based learning and let R8 Companion™ do the rest. Or you can manually 'lock' or 'unlock' locations with ease from the main alert screen.\n• SpotLocks works seamlessly with your R8’s built in 'auto mute memory' locations.  If you create or delete a location from the app it will apply the changes to your R8 at the same time.\n• Option to play detector tones in app.\n• 'Proximity' meter - leverages the high resolution signal strength and direction information provided by the detector to show you a better representation of the signal's",
-      "screenshots": [
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f7/ad/d6/f7add65c-9985-89cb-be8a-77ce41e830fa/CarPlay.jpg/392x696bb.jpg",
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/d5/37/bb/d537bb69-ba42-1bd8-533b-85f8c6b3fa0c/IMG_1018.PNG/392x696bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ae/1b/c6/ae1bc6a6-e715-cd8e-f776-b80611e74cfb/IMG_1570.PNG/392x696bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e8/6b/62/e86b62a3-17fa-73ec-7748-a129da5e27fe/IMG_9248.PNG/392x696bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/60/0e/ce/600ece4b-943f-bf64-48c7-9adaaf164128/IMG_1596.PNG/392x696bb.png"
-      ],
-      "rating": 4.81832,
-      "rating_count": 1354,
-      "bundle_id": "com.crackedpixel.R8Companion",
-      "seller_url": "https://crackedpixel.com",
-      "size_bytes": 15444992
     },
     {
       "rank": 18,
@@ -398,6 +398,31 @@
     },
     {
       "rank": 19,
+      "app_id": "6461348120",
+      "name": "R8 Companion",
+      "developer": "Angela Mcarthur",
+      "category": "Utilities",
+      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/8e/0b/c1/8e0bc195-19c5-0323-2418-e9f96b36e4e9/AppIcon-0-0-1x_U007ephone-0-1-sRGB-85-220.png/100x100bb.png",
+      "price": 9.99,
+      "summary": "The R8 Companion™ app leverages 5+ years of historical data in its acclaimed 'Advanced False Assist' filtering engine, detector optimizations and shared features from the Radar Companion™ series of ap",
+      "release_date": "2023-08-18T00:00:00-07:00",
+      "version": "1.33.11",
+      "description": "The R8 Companion™ app leverages 5+ years of historical data in its acclaimed 'Advanced False Assist' filtering engine, detector optimizations and shared features from the Radar Companion™ series of apps. (Available separately for owners of the V1, R4, R9, & DS1 radar detectors).  The filtering engine is updated on a regular basis from accumulated real world usage data for better filtering against falses, and protection against real threats.\n\nR8 Companion™ is a feature rich app, designed to give you the most out of your R8, while enhancing your driving experience along the way. It is extremely easy to get up and running.  Featuring intelligent alerts and advanced muting! R8 Companion™ is the COMPLETE solution to enjoying your R8.  \n\nNOTE: R8 Companion™ requires a Uniden R8 or R8w radar detector with US Version 141 (R8) or 137 (R8w) firmware (or earlier) to function correctly. R8 Companion will NOT function correctly without the appropriate firmware for each detector.\n\nEnhanced GPS location based 'false muting' via SpotLocks - All future updates to this app are free to purchasers of R8 Companion.\n\nR8 Companion's alerting and muting systems are fully optimized for the R8 platform. Intelligent voice announcements and on-screen visuals will always keep you informed and aware of the situation around you. \n\nR8 Companion full feature list:\n• SpotLocks - Location based false silencing has never been this good or easy. Turn on the intelligent location-based learning and let R8 Companion™ do the rest. Or you can manually 'lock' or 'unlock' locations with ease from the main alert screen.\n• SpotLocks works seamlessly with your R8’s built in 'auto mute memory' locations.  If you create or delete a location from the app it will apply the changes to your R8 at the same time.\n• Option to play detector tones in app.\n• 'Proximity' meter - leverages the high resolution signal strength and direction information provided by the detector to show you a better representation of the signal's",
+      "screenshots": [
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f7/ad/d6/f7add65c-9985-89cb-be8a-77ce41e830fa/CarPlay.jpg/392x696bb.jpg",
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/d5/37/bb/d537bb69-ba42-1bd8-533b-85f8c6b3fa0c/IMG_1018.PNG/392x696bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ae/1b/c6/ae1bc6a6-e715-cd8e-f776-b80611e74cfb/IMG_1570.PNG/392x696bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e8/6b/62/e86b62a3-17fa-73ec-7748-a129da5e27fe/IMG_9248.PNG/392x696bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/60/0e/ce/600ece4b-943f-bf64-48c7-9adaaf164128/IMG_1596.PNG/392x696bb.png"
+      ],
+      "rating": 4.81832,
+      "rating_count": 1354,
+      "bundle_id": "com.crackedpixel.R8Companion",
+      "seller_url": "https://crackedpixel.com",
+      "size_bytes": 15444992
+    },
+    {
+      "rank": 20,
       "app_id": "1466120520",
       "name": "iVerify Basic",
       "developer": "iVerify",
@@ -419,31 +444,6 @@
       "bundle_id": "com.trailofbits.iverify2",
       "seller_url": "https://www.iverify.io/",
       "size_bytes": 58050560
-    },
-    {
-      "rank": 20,
-      "app_id": "1443988620",
-      "name": "Quantumult X",
-      "developer": "Cross Utility Ltd",
-      "category": "Utilities",
-      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/ac/a4/ca/aca4cafb-ab1d-347f-0bdf-8aa08cbe1232/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/100x100bb.png",
-      "price": 9.99,
-      "summary": "Quantumult completely rebuilt from scratch, and includes a lots of awesome new features!\n\nQuantumult X is a powerful network tool for web developers and users who need to customize their proxies.\n\nFor",
-      "release_date": "2019-10-11T00:00:00-07:00",
-      "version": "1.6.0",
-      "description": "Quantumult completely rebuilt from scratch, and includes a lots of awesome new features!\n\nQuantumult X is a powerful network tool for web developers and users who need to customize their proxies.\n\nFor web develpers:\n- HTTP activity can record the whole HTTP request and response including body(HTTP debug should be enabled).\n- The MitM HTTP decryption can work for the traffics from TUN interface(MitM should be enabled).\n- HTTP rewrite with URL 302/307 redirect or request header/body modification or response header/body modification(Rewrite should be enabled).\n- Customized DNS settings for specific domains(IPv4 or IPv6),  only can be edited in configuration profile.\n\nFor users who need to customize their proxies:\n- Supports shadowsocks proxy protocol.\n- Supports shadowsocks with obfs-tls or obfs-http plugins.\n- Supports shadowsocks over websocket and tls(server side should be deployed by v2ray-core).\n- Supports UDP relay if the server supports it.\n- Supports different policies for network request by using customized filters(host, host suffix, host keyword...).\n\nPrivacy Policy: https://quantumult.app/x/privacy/\nContact Us: support@quantumult.app",
-      "screenshots": [
-        "https://is1-ssl.mzstatic.com/image/thumb/Purple123/v4/da/c5/f6/dac5f6ce-ca8a-fb31-0c5b-6885359d0d8d/pr_source.png/392x696bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/Purple123/v4/8a/3d/55/8a3d55a4-e6be-3bd8-033a-a636bb0ff212/pr_source.png/392x696bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/Purple123/v4/1c/f6/86/1cf6861a-7431-aa18-7be2-04a58c26f9fc/pr_source.png/392x696bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/Purple123/v4/49/ed/14/49ed14e0-bd7e-1a89-389b-0ebf013ca59d/pr_source.png/392x696bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/Purple123/v4/11/b7/6f/11b76f2a-765b-b352-f665-2a4c8624437c/pr_source.png/392x696bb.png"
-      ],
-      "rating": 3.8173,
-      "rating_count": 1653,
-      "bundle_id": "com.crossutility.quantumult-x",
-      "seller_url": "https://quantumult.app/x",
-      "size_bytes": 60488704
     }
   ]
 }
