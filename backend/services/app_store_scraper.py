@@ -25,15 +25,46 @@ PROXIES = None
 # iTunes 类别 ID 映射（App Store Genre IDs）
 # ⚠️ 这些 ID 是通过搜索知名App反推+RSS验证得到的正确映射
 # 旧 ID（6004等）已验证错误，会返回错误的类别数据
+# 游戏子类别 ID 来源于 iTunes RSS 实际测试验证
 ITUNES_GENRE_MAP = {
-    "TOOLS":          {"id": 6002, "zh": "工具",     "en": "Utilities"},
-    "ART_AND_DESIGN": {"id": 6027, "zh": "图形设计", "en": "Graphics & Design"},   # 旧6004→返回Sports!
-    "PHOTOGRAPHY":    {"id": 6008, "zh": "摄影",     "en": "Photo & Video"},       # 旧5902→错误
-    "PRODUCTIVITY":   {"id": 6007, "zh": "效率",     "en": "Productivity"},        # 旧7013→返回Games!
-    "BUSINESS":       {"id": 6000, "zh": "商务",     "en": "Business"},
-    "EDUCATION":      {"id": 6017, "zh": "教育",     "en": "Education"},          # 旧7012→返回Games!
-    "ENTERTAINMENT":  {"id": 6016, "zh": "娱乐",     "en": "Entertainment"},       # 旧7002→返回Games!
-    "LIFESTYLE":      {"id": 6012, "zh": "生活",     "en": "Lifestyle"},
+    # ─── 应用类（App） ───
+    "TOOLS":          {"id": 6002, "zh": "工具",       "en": "Utilities"},
+    "ART_AND_DESIGN": {"id": 6027, "zh": "图形设计",   "en": "Graphics & Design"},
+    "PHOTOGRAPHY":    {"id": 6008, "zh": "摄影录像",   "en": "Photo & Video"},
+    "PRODUCTIVITY":   {"id": 6007, "zh": "效率",       "en": "Productivity"},
+    "BUSINESS":       {"id": 6000, "zh": "商务",       "en": "Business"},
+    "EDUCATION":      {"id": 6017, "zh": "教育",       "en": "Education"},
+    "ENTERTAINMENT":  {"id": 6016, "zh": "娱乐",       "en": "Entertainment"},
+    "LIFESTYLE":      {"id": 6012, "zh": "生活",       "en": "Lifestyle"},
+    "HEALTH_FITNESS": {"id": 6009, "zh": "健康健身",   "en": "Health & Fitness"},
+    "MUSIC":          {"id": 6005, "zh": "音乐",       "en": "Music"},
+    "NEWS":           {"id": 6003, "zh": "新闻",       "en": "News"},
+    "WEATHER":        {"id": 6006, "zh": "天气",       "en": "Weather"},
+    "NAVIGATION":     {"id": 6010, "zh": "导航",       "en": "Navigation"},
+    "FINANCE":        {"id": 6011, "zh": "财务",       "en": "Finance"},
+    "SHOPPING":       {"id": 6013, "zh": "购物",       "en": "Shopping"},
+    "FOOD_DRINK":     {"id": 6015, "zh": "美食饮品",   "en": "Food & Drink"},
+    "MEDICAL":        {"id": 6018, "zh": "医疗",       "en": "Medical"},
+    "REFERENCE":      {"id": 6019, "zh": "参考",       "en": "Reference"},
+    "SOCIAL_NETWORKING": {"id": 6001, "zh": "社交", "en": "Social Networking"},
+    "TRAVEL":         {"id": 7022, "zh": "旅行",       "en": "Travel"},
+    # ─── 游戏类（Game）───
+    "GAME_ACTION":     {"id": 7003, "zh": "动作",       "en": "Action"},
+    "GAME_ADVENTURE":  {"id": 7004, "zh": "冒险",       "en": "Adventure"},
+    "GAME_ARCADE":    {"id": 7001, "zh": "街机",       "en": "Arcade"},
+    "GAME_BOARD":     {"id": 7005, "zh": "桌游",       "en": "Board"},
+    "GAME_CARD":      {"id": 7006, "zh": "卡牌",       "en": "Card"},
+    "GAME_CASINO":    {"id": 7007, "zh": "赌场",       "en": "Casino"},
+    "GAME_PUZZLE":   {"id": 7015, "zh": "益智",       "en": "Puzzle"},
+    "GAME_RACING":    {"id": 7009, "zh": "竞速",       "en": "Racing"},
+    "GAME_ROLE_PLAYING": {"id": 7017, "zh": "角色扮演", "en": "Role Playing"},
+    "GAME_SIMULATION": {"id": 7018, "zh": "模拟",       "en": "Simulation"},
+    "GAME_SPORTS":    {"id": 7019, "zh": "体育",       "en": "Sports"},
+    "GAME_STRATEGY":  {"id": 7014, "zh": "策略",       "en": "Strategy"},
+    "GAME_TRIVIA":    {"id": 7021, "zh": "问答",       "en": "Trivia"},
+    "GAME_WORD":      {"id": 7023, "zh": "文字",       "en": "Word"},
+    "GAME_FAMILY":    {"id": 7020, "zh": "家庭",       "en": "Family"},
+    "GAME_CASUAL":    {"id": 7024, "zh": "休闲",       "en": "Casual"},
 }
 
 # 默认类别
@@ -122,8 +153,8 @@ class AppStoreScraper:
         return None
 
     @staticmethod
-    def fetch_top20(category: str = "TOOLS", chart_type: str = "free") -> list[dict]:
-        """抓取指定类别的 Top 20 榜单（支持动态类别切换 + 免费/付费榜）"""
+    def fetch_top20(category: str = "TOOLS", chart_type: str = "free", country: str = "US") -> list[dict]:
+        """抓取指定类别的 Top 20 榜单（支持动态类别+国家+免费/付费榜）"""
         apps = []
         # 获取类别 ID
         genre_info = ITUNES_GENRE_MAP.get(category.upper(), ITUNES_GENRE_MAP[DEFAULT_GENRE])
@@ -131,10 +162,12 @@ class AppStoreScraper:
         category_zh = genre_info["zh"]
         category_en = genre_info["en"]
 
-        # 根据榜单类型选择 RSS feed
+        # 根据榜单类型选择 RSS feed；国家代码小写放入 URL 路径
         feed_type = "topfreeapplications" if chart_type == "free" else "toppaidapplications"
-        url = f"https://itunes.apple.com/us/rss/{feed_type}/limit=25/genre={genre_id}/json"
-        print(f"[AppStore] 抓取: {category_en}({category_zh}) {chart_type}榜 | genre_id={genre_id}")
+        country_code = (country or "US").lower()
+        url = f"https://itunes.apple.com/{country_code}/rss/{feed_type}/limit=25/genre={genre_id}/json"
+        print(f"[AppStore] 抓取: country={country_code} {category_en}({category_zh}) {chart_type}榜 | genre_id={genre_id}")
+        print(f"[DEBUG] category input='{category}', upper='{category.upper()}', matched key='{category.upper()}', genre_id={genre_id}")
         try:
             resp = requests.get(url, headers=HEADERS, proxies=PROXIES, timeout=20)
             if resp.status_code != 200:

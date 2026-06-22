@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-22T22:25:16.212680",
+  "timestamp": "2026-06-22T22:56:36.098890",
   "total": 20,
   "apps": [
     {
@@ -21,8 +21,8 @@
         "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/08/22/7d/08227d50-0a6b-3185-6266-bbf026613a1a/tns.dzzpyfwv.png/392x696bb.png",
         "https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/95/09/07/950907e2-ac45-a8b7-0c03-205286094e51/d9785e78-5107-4258-9fa0-12499b83efba_Simulator_Screen_Shot_-_iPhone_8_Plus_-_2021-03-09_at_14.49.06.png/392x696bb.png"
       ],
-      "rating": 4.48364,
-      "rating_count": 11949,
+      "rating": 4.48381,
+      "rating_count": 11953,
       "bundle_id": "com.liguangming.Shadowrocket",
       "seller_url": "https://shadowlaunch.com/",
       "size_bytes": 53208064
@@ -73,22 +73,24 @@
     },
     {
       "rank": 4,
-      "app_id": "6756966178",
-      "name": "V2Box Pro - V2ray Client",
-      "developer": "Hexa Software",
+      "app_id": "6449003064",
+      "name": "Goblin Tools",
+      "developer": "Skyhook",
       "category": "Utilities",
-      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a2/96/e3/a296e364-41c5-c772-dccc-10a4ff151c28/V2boxPro-0-0-1x_U007epad-0-1-sRGB-85-220.png/100x100bb.png",
+      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/98/d1/49/98d149b0-645a-7cf4-fb16-3948ff3dd471/AppIcon-1x_U007emarketing-0-10-0-85-220.png/100x100bb.png",
       "price": 2.99,
-      "summary": "V2box Pro - VPN Internet network proxy , Supports multiple proxy protocols, such as Shadowsocks, V2ray, Vmess, Trojan , SSH , Socks, hysteria2, Ping Tunnel, Wireguard, DNSTT\n\n\n\nFeatures:\n\n- Support fo",
-      "release_date": "2026-05-16T00:00:00-07:00",
-      "version": "10.1.2",
-      "description": "V2box Pro - VPN Internet network proxy , Supports multiple proxy protocols, such as Shadowsocks, V2ray, Vmess, Trojan , SSH , Socks, hysteria2, Ping Tunnel, Wireguard, DNSTT\n\n\n\nFeatures:\n\n- Support for adding custom servers proxy (Shadowsocks, v2ray, trojan, vless, vmess, SSH, hysteria2, Ping Tunnel, Wireguard)\n- Support Reality (xray)\n- Support vless vision\n- Support utls\n- Support SSH with UDP Gateway (udpgw)\n\n- Network Combiner, Improve speed and stability (Merge WiFi & Cellular)\n- Stop on Sleep (Improve Battery usage)\n- Share on Local SOCKS5 / HTTP (accessible over network)\n- Custom DNS setup (DOU,DOH,DOT)\n- Custom Flexible Routing\n\n\n\n- Multiple encryption protocol support, AES-128-GCM, AES-192-GCM, AES-256-GCM, Chacha20-IETF, Chacha20 - ietf - poly1305, xchacha20 ietf -- poly1305\n\n- Stealth and stable, no need to log in and register, easy to use\n\n- Does not save any user log information\n\n- Wi-Fi Security when using Public Hotspots\n\n- Protect your network IP and privacy security\n\n- Unmatched network speed and performance\n\n\n\n\nTerms of Services: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n\nPrivacy Policy: https://hexasoftware.dev/v2box-terms/",
-      "screenshots": [],
-      "rating": 4.15789,
-      "rating_count": 38,
-      "bundle_id": "dev.hexasoftware.V2Box",
-      "seller_url": "https://hexasoftware.dev/",
-      "size_bytes": 147493888
+      "summary": "This is an app version of the free website goblin.tools, a collection of small, simple, single-task tools, mostly designed to help neurodivergent people with tasks they find overwhelming or difficult.",
+      "release_date": "2023-05-31T00:00:00-07:00",
+      "version": "1.1",
+      "description": "This is an app version of the free website goblin.tools, a collection of small, simple, single-task tools, mostly designed to help neurodivergent people with tasks they find overwhelming or difficult.\n\n\n\nTools include\n- A Magic Todo list that automatically breaks down tasks into steps\n- The Formalizer that transforms your language to be more formal, sociable, concise, or many other options\n- The Judge that helps with interpreting tone\n- The Estimator that can guess at a timeframe for an activity\n- The Compiler to take entire braindumps and turn them into actionable tasks\n- The Chef, who turns a description of what ingredients and tools you have in your kitchen into a real recipe\n\n\n\nAnd many more to come!\n\n\n\nThe website is free and publicly available. Purchases of this app go first towards keeping the site free and ad-free, before supporting the author.",
+      "screenshots": [
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource116/v4/dd/25/3e/dd253ed9-8f15-3fa1-1c84-44cb49326a34/30e52f3b-a155-4043-b758-23a38e1d4488_IMG_0012.PNG/392x696bb.png"
+      ],
+      "rating": 4.77914,
+      "rating_count": 2934,
+      "bundle_id": "com.goblintools",
+      "seller_url": "",
+      "size_bytes": 662528
     },
     {
       "rank": 5,
@@ -117,27 +119,48 @@
     },
     {
       "rank": 6,
-      "app_id": "6449003064",
-      "name": "Goblin Tools",
-      "developer": "Skyhook",
+      "app_id": "6756966178",
+      "name": "V2Box Pro - V2ray Client",
+      "developer": "Hexa Software",
       "category": "Utilities",
-      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/98/d1/49/98d149b0-645a-7cf4-fb16-3948ff3dd471/AppIcon-1x_U007emarketing-0-10-0-85-220.png/100x100bb.png",
+      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a2/96/e3/a296e364-41c5-c772-dccc-10a4ff151c28/V2boxPro-0-0-1x_U007epad-0-1-sRGB-85-220.png/100x100bb.png",
       "price": 2.99,
-      "summary": "This is an app version of the free website goblin.tools, a collection of small, simple, single-task tools, mostly designed to help neurodivergent people with tasks they find overwhelming or difficult.",
-      "release_date": "2023-05-31T00:00:00-07:00",
-      "version": "1.1",
-      "description": "This is an app version of the free website goblin.tools, a collection of small, simple, single-task tools, mostly designed to help neurodivergent people with tasks they find overwhelming or difficult.\n\n\n\nTools include\n- A Magic Todo list that automatically breaks down tasks into steps\n- The Formalizer that transforms your language to be more formal, sociable, concise, or many other options\n- The Judge that helps with interpreting tone\n- The Estimator that can guess at a timeframe for an activity\n- The Compiler to take entire braindumps and turn them into actionable tasks\n- The Chef, who turns a description of what ingredients and tools you have in your kitchen into a real recipe\n\n\n\nAnd many more to come!\n\n\n\nThe website is free and publicly available. Purchases of this app go first towards keeping the site free and ad-free, before supporting the author.",
-      "screenshots": [
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource116/v4/dd/25/3e/dd253ed9-8f15-3fa1-1c84-44cb49326a34/30e52f3b-a155-4043-b758-23a38e1d4488_IMG_0012.PNG/392x696bb.png"
-      ],
-      "rating": 4.77914,
-      "rating_count": 2934,
-      "bundle_id": "com.goblintools",
-      "seller_url": "",
-      "size_bytes": 662528
+      "summary": "V2box Pro - VPN Internet network proxy , Supports multiple proxy protocols, such as Shadowsocks, V2ray, Vmess, Trojan , SSH , Socks, hysteria2, Ping Tunnel, Wireguard, DNSTT\n\n\n\nFeatures:\n\n- Support fo",
+      "release_date": "2026-05-16T00:00:00-07:00",
+      "version": "10.1.2",
+      "description": "V2box Pro - VPN Internet network proxy , Supports multiple proxy protocols, such as Shadowsocks, V2ray, Vmess, Trojan , SSH , Socks, hysteria2, Ping Tunnel, Wireguard, DNSTT\n\n\n\nFeatures:\n\n- Support for adding custom servers proxy (Shadowsocks, v2ray, trojan, vless, vmess, SSH, hysteria2, Ping Tunnel, Wireguard)\n- Support Reality (xray)\n- Support vless vision\n- Support utls\n- Support SSH with UDP Gateway (udpgw)\n\n- Network Combiner, Improve speed and stability (Merge WiFi & Cellular)\n- Stop on Sleep (Improve Battery usage)\n- Share on Local SOCKS5 / HTTP (accessible over network)\n- Custom DNS setup (DOU,DOH,DOT)\n- Custom Flexible Routing\n\n\n\n- Multiple encryption protocol support, AES-128-GCM, AES-192-GCM, AES-256-GCM, Chacha20-IETF, Chacha20 - ietf - poly1305, xchacha20 ietf -- poly1305\n\n- Stealth and stable, no need to log in and register, easy to use\n\n- Does not save any user log information\n\n- Wi-Fi Security when using Public Hotspots\n\n- Protect your network IP and privacy security\n\n- Unmatched network speed and performance\n\n\n\n\nTerms of Services: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n\nPrivacy Policy: https://hexasoftware.dev/v2box-terms/",
+      "screenshots": [],
+      "rating": 4.15789,
+      "rating_count": 38,
+      "bundle_id": "dev.hexasoftware.V2Box",
+      "seller_url": "https://hexasoftware.dev/",
+      "size_bytes": 147493888
     },
     {
       "rank": 7,
+      "app_id": "1396698319",
+      "name": "Necrophonic",
+      "developer": "chris rogers",
+      "category": "Utilities",
+      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple122/v4/8f/7c/3d/8f7c3dcc-e440-badb-045f-77b772d1c15c/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.png",
+      "price": 9.99,
+      "summary": "Necrophonic is an ITC app used for spirit communication and EVP research.\n\n8 Sounds Banks:\n\nThe audio has been mastered in a way to bring out various sound properties . \nUsing Pro Tools I was able to ",
+      "release_date": "2018-07-24T22:43:03-07:00",
+      "version": "1.7",
+      "description": "Necrophonic is an ITC app used for spirit communication and EVP research.\n\n8 Sounds Banks:\n\nThe audio has been mastered in a way to bring out various sound properties . \nUsing Pro Tools I was able to enhance high, mid, and low range frequencies. I also applied \nother filters to create unique sound characteristics to help layer the audio and create an \nenvironment suitable for spirit communication.\n\nThe audio itself is made up of phonemes, \npartial words, reverse audio, foreign languages, and other parts of speech that can help \nspirits communicate. Besides some basic phonetic sounds such as na, no, da, do, di, ma, may, etc.\nthere are no real words of phrases contained in the banks.\n\nThese sounds banks play in a similar\nway to that of my other app \"Spiritus Ghost Box\" but instead of 4 sound banks Necrophonic has\n8 active sound banks.\n\nWhite Noise Sound Bank:\n\nThis app also has an optional 9th sound bank called \"White noise\". \nThis bank can be used alone or with the other 8 giving you a total of 9 sound banks. This \naudio is taken for the internal sounds of the famous DR60 recorder that is known as the \n\"Holy Grail\" of EVP recorders. This is not a White Noise Generator, this is a normal sound bank like the others but this one contains white noise from the DR60.\n\nAudio Effects:\n\nThis app does contain Echo and Reverb audio effects. These have been proven \nto be the best effects to apply to ITC sessions. The echo can create audio that can be \nmanipulated within the echo itself. Echo can also help in live, real time communication by \nrepeating the audio and allowing you to better hear whats coming through. Reverb can be \napplied to the audio to create a spacious sound environment that will enhance audio manipulation.",
+      "screenshots": [
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/dc/4a/dc/dc4adc74-172e-bb26-c8ac-f6df53aae235/4bf6f779-69cd-43a6-a8fa-4ba918bb5d39_2208x1242-screenshot.png/406x228bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/3c/83/45/3c834513-d2e2-8b9d-2ec6-d810129ff875/3c2dff56-b2e8-4585-bcf8-13ec972b2ee2_2208x1242-screenshot__U00281_U0029.png/406x228bb.png",
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/3b/a7/fc/3ba7fc16-f735-e2ea-b2f8-0fe620a2d624/b69d2b0f-9269-4aff-8531-fe499501b816_2208x1242-screenshot__U00282_U0029.png/406x228bb.png"
+      ],
+      "rating": 3.77376,
+      "rating_count": 526,
+      "bundle_id": "com.ChillSeekers.Necrophonic",
+      "seller_url": "",
+      "size_bytes": 102253568
+    },
+    {
+      "rank": 8,
       "app_id": "1356726417",
       "name": "ForzaTune Pro",
       "developer": "Crosswise Ventures, LLC",
@@ -162,7 +185,7 @@
       "size_bytes": 27488256
     },
     {
-      "rank": 8,
+      "rank": 9,
       "app_id": "1596063349",
       "name": "Stash - Rule Based Proxy",
       "developer": "STASH NETWORKS LIMITED",
@@ -179,34 +202,11 @@
         "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource123/v4/aa/f6/22/aaf622a9-67af-d1da-5223-26b1052ec780/6ab2fa35-c154-4821-a36b-e404557c442a_Frame_3.png/392x696bb.png",
         "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource123/v4/5a/1a/7f/5a1a7f06-9137-8f8d-e228-dc4915035dc6/e44cc8b5-bd19-4f39-aadc-35f841cd735c_Frame_4.png/392x696bb.png"
       ],
-      "rating": 4.35208,
-      "rating_count": 1173,
+      "rating": 4.35264,
+      "rating_count": 1174,
       "bundle_id": "ws.stash.app",
       "seller_url": "",
       "size_bytes": 118328320
-    },
-    {
-      "rank": 9,
-      "app_id": "1396698319",
-      "name": "Necrophonic",
-      "developer": "chris rogers",
-      "category": "Utilities",
-      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple122/v4/8f/7c/3d/8f7c3dcc-e440-badb-045f-77b772d1c15c/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.png",
-      "price": 9.99,
-      "summary": "Necrophonic is an ITC app used for spirit communication and EVP research.\n\n8 Sounds Banks:\n\nThe audio has been mastered in a way to bring out various sound properties . \nUsing Pro Tools I was able to ",
-      "release_date": "2018-07-24T22:43:03-07:00",
-      "version": "1.7",
-      "description": "Necrophonic is an ITC app used for spirit communication and EVP research.\n\n8 Sounds Banks:\n\nThe audio has been mastered in a way to bring out various sound properties . \nUsing Pro Tools I was able to enhance high, mid, and low range frequencies. I also applied \nother filters to create unique sound characteristics to help layer the audio and create an \nenvironment suitable for spirit communication.\n\nThe audio itself is made up of phonemes, \npartial words, reverse audio, foreign languages, and other parts of speech that can help \nspirits communicate. Besides some basic phonetic sounds such as na, no, da, do, di, ma, may, etc.\nthere are no real words of phrases contained in the banks.\n\nThese sounds banks play in a similar\nway to that of my other app \"Spiritus Ghost Box\" but instead of 4 sound banks Necrophonic has\n8 active sound banks.\n\nWhite Noise Sound Bank:\n\nThis app also has an optional 9th sound bank called \"White noise\". \nThis bank can be used alone or with the other 8 giving you a total of 9 sound banks. This \naudio is taken for the internal sounds of the famous DR60 recorder that is known as the \n\"Holy Grail\" of EVP recorders. This is not a White Noise Generator, this is a normal sound bank like the others but this one contains white noise from the DR60.\n\nAudio Effects:\n\nThis app does contain Echo and Reverb audio effects. These have been proven \nto be the best effects to apply to ITC sessions. The echo can create audio that can be \nmanipulated within the echo itself. Echo can also help in live, real time communication by \nrepeating the audio and allowing you to better hear whats coming through. Reverb can be \napplied to the audio to create a spacious sound environment that will enhance audio manipulation.",
-      "screenshots": [
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/dc/4a/dc/dc4adc74-172e-bb26-c8ac-f6df53aae235/4bf6f779-69cd-43a6-a8fa-4ba918bb5d39_2208x1242-screenshot.png/406x228bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/3c/83/45/3c834513-d2e2-8b9d-2ec6-d810129ff875/3c2dff56-b2e8-4585-bcf8-13ec972b2ee2_2208x1242-screenshot__U00281_U0029.png/406x228bb.png",
-        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource112/v4/3b/a7/fc/3ba7fc16-f735-e2ea-b2f8-0fe620a2d624/b69d2b0f-9269-4aff-8531-fe499501b816_2208x1242-screenshot__U00282_U0029.png/406x228bb.png"
-      ],
-      "rating": 3.77376,
-      "rating_count": 526,
-      "bundle_id": "com.ChillSeekers.Necrophonic",
-      "seller_url": "",
-      "size_bytes": 102253568
     },
     {
       "rank": 10,
@@ -283,8 +283,8 @@
       "version": "2.0",
       "description": "集中收納每一張卡的電信商、方案、號碼、到期日與花費。國旗卡面搭配電信商官方圖示，一眼看懂；到期前自動以通知、Telegram 或 Email 提醒，再也不怕忘記續約或漏掉到期。內建掃碼解析 LPA、產生安裝 QR Code、eSIM 與 MCC/MNC 查詢、多幣別資產統計、保號卡自動續期、應用鎖與桌面小工具。出行常備，保號不忘。",
       "screenshots": [],
-      "rating": 0.0,
-      "rating_count": 0,
+      "rating": 5.0,
+      "rating_count": 1,
       "bundle_id": "top.fooeahqms.SIMKit",
       "seller_url": "",
       "size_bytes": 48999424
@@ -341,25 +341,6 @@
     },
     {
       "rank": 16,
-      "app_id": "6754986970",
-      "name": "RPGPlayer - An RPGMaker Player",
-      "developer": "Emir Han Temur",
-      "category": "Utilities",
-      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/bb/7d/5e/bb7d5e1a-a4c0-ae11-932c-3b08822eb870/AppIcon-1x_U007epad-0-1-85-220-0.png/100x100bb.png",
-      "price": 6.99,
-      "summary": "Turn your iOS device into the ultimate portable console for RPG Maker games! RPG Player allows you to import and play your favorite RPG Maker titles on the go with optimized performance and console-qu",
-      "release_date": "2025-12-10T00:00:00-07:00",
-      "version": "v2.3",
-      "description": "Turn your iOS device into the ultimate portable console for RPG Maker games! RPG Player allows you to import and play your favorite RPG Maker titles on the go with optimized performance and console-quality features.\n\nUniversal Compatibility • Wide Support: Fully compatible with games created in RPG Maker XP, VX, VX Ace, MV, and MZ. • Dual Engine Core: Utilizes the highly optimized MKXP-Z engine for classic titles and a custom high-performance Web wrapper for modern MV/MZ games.\n\nSmart Library & Organization • Your Personal Collection: Easily import games via ZIP or RAR archives directly from the Files app. • Smart Organization: Automatically organizes your library with grid views and cover art. • Search & Filter: Instantly find your next adventure with powerful search tools and category filters. • Home Screen Widgets: Jump right back into your recently played games with beautiful, functional widgets.\n\nConsole-Quality Experience • Controller Support: Play seamlessly with Bluetooth controllers (Xbox, PS5, MFi) or use the fully customizable visual gamepad. • Pro Audio: Enhanced audio engine ensures glitch-free music and sound effects. • Quick Settings: Access game settings, save/load menus, and more with a draggable in-game toolbar.\n\nAdvanced Tools • Save Management: robust save system with Auto-Backup protection. Transfer saves between devices easily. • Storage Manager: Keep track of your utilized space and manage large game files effortlessly. • Offline Play: No internet required—your games are yours to play anywhere, anytime.\n\nRediscover the classics or play the latest indie gems. Download RPG Player today!",
-      "screenshots": [],
-      "rating": 3.27941,
-      "rating_count": 68,
-      "bundle_id": "com.han.Rpgplayer",
-      "seller_url": "https://am1guard.github.io/rpgplayerfullcalisan/en.html",
-      "size_bytes": 81725440
-    },
-    {
-      "rank": 17,
       "app_id": "1589391989",
       "name": "Mapper for Safari",
       "developer": "Alex Kitcoff",
@@ -376,6 +357,25 @@
       "bundle_id": "com.alexkitcoff.mapopener",
       "seller_url": "https://alexkitcoff.com/mapper-for-safari/",
       "size_bytes": 1213440
+    },
+    {
+      "rank": 17,
+      "app_id": "6754986970",
+      "name": "RPGPlayer - An RPGMaker Player",
+      "developer": "Emir Han Temur",
+      "category": "Utilities",
+      "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/bb/7d/5e/bb7d5e1a-a4c0-ae11-932c-3b08822eb870/AppIcon-1x_U007epad-0-1-85-220-0.png/100x100bb.png",
+      "price": 6.99,
+      "summary": "Turn your iOS device into the ultimate portable console for RPG Maker games! RPG Player allows you to import and play your favorite RPG Maker titles on the go with optimized performance and console-qu",
+      "release_date": "2025-12-10T00:00:00-07:00",
+      "version": "v2.3",
+      "description": "Turn your iOS device into the ultimate portable console for RPG Maker games! RPG Player allows you to import and play your favorite RPG Maker titles on the go with optimized performance and console-quality features.\n\nUniversal Compatibility • Wide Support: Fully compatible with games created in RPG Maker XP, VX, VX Ace, MV, and MZ. • Dual Engine Core: Utilizes the highly optimized MKXP-Z engine for classic titles and a custom high-performance Web wrapper for modern MV/MZ games.\n\nSmart Library & Organization • Your Personal Collection: Easily import games via ZIP or RAR archives directly from the Files app. • Smart Organization: Automatically organizes your library with grid views and cover art. • Search & Filter: Instantly find your next adventure with powerful search tools and category filters. • Home Screen Widgets: Jump right back into your recently played games with beautiful, functional widgets.\n\nConsole-Quality Experience • Controller Support: Play seamlessly with Bluetooth controllers (Xbox, PS5, MFi) or use the fully customizable visual gamepad. • Pro Audio: Enhanced audio engine ensures glitch-free music and sound effects. • Quick Settings: Access game settings, save/load menus, and more with a draggable in-game toolbar.\n\nAdvanced Tools • Save Management: robust save system with Auto-Backup protection. Transfer saves between devices easily. • Storage Manager: Keep track of your utilized space and manage large game files effortlessly. • Offline Play: No internet required—your games are yours to play anywhere, anytime.\n\nRediscover the classics or play the latest indie gems. Download RPG Player today!",
+      "screenshots": [],
+      "rating": 3.27941,
+      "rating_count": 68,
+      "bundle_id": "com.han.Rpgplayer",
+      "seller_url": "https://am1guard.github.io/rpgplayerfullcalisan/en.html",
+      "size_bytes": 81725440
     },
     {
       "rank": 18,
@@ -415,8 +415,8 @@
         "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ed/8f/ae/ed8fae79-ca5a-6519-345e-6fcb08bbf30b/75b1a43d-4830-4001-8008-e18aa1ab3274_04.png/392x696bb.png",
         "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/a7/37/4a/a7374af2-493c-cbee-bb7a-64271ebccee6/a4a0cddd-68d4-4def-8db6-a872bfd34ec7_05.png/392x696bb.png"
       ],
-      "rating": 4.71006,
-      "rating_count": 169,
+      "rating": 4.71176,
+      "rating_count": 170,
       "bundle_id": "ai.devl.RenPySpark",
       "seller_url": "https://spark.devl.ai",
       "size_bytes": 664076288
@@ -440,8 +440,8 @@
         "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e8/6b/62/e86b62a3-17fa-73ec-7748-a129da5e27fe/IMG_9248.PNG/392x696bb.png",
         "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/60/0e/ce/600ece4b-943f-bf64-48c7-9adaaf164128/IMG_1596.PNG/392x696bb.png"
       ],
-      "rating": 4.81805,
-      "rating_count": 1352,
+      "rating": 4.81832,
+      "rating_count": 1354,
       "bundle_id": "com.crackedpixel.R8Companion",
       "seller_url": "https://crackedpixel.com",
       "size_bytes": 15444992

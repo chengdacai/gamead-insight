@@ -403,12 +403,14 @@ def _refresh_app_store(force: bool = False):
 
 @app.get("/api/appstore/top20")
 async def get_app_store_top20(
-    category: str = Query("TOOLS", description="类别: TOOLS/ART_AND_DESIGN/PHOTOGRAPHY/PRODUCTIVITY/BUSINESS"),
+    category: str = Query("TOOLS", description="类别: TOOLS/ART_AND_DESIGN/PHOTOGRAPHY/PRODUCTIVITY/BUSINESS/GAME_ACTION/etc"),
     sort_by: str = Query("rank", description="排序: rank / rating / changes"),
     chart_type: str = Query("free", description="榜单类型: free(免费榜) / paid(付费榜)"),
+    country: str = Query("US", description="国家代码: US/CN/JP/GB/DE/KR/FR/IN"),
 ):
-    """获取指定类别的 App Store Top 20 榜单（含变更检测，支持动态类别切换+免费/付费）"""
-    apps = AppStoreScraper.fetch_top20(category=category.upper(), chart_type=chart_type)
+    """获取指定类别的 App Store Top 20 榜单（含变更检测，支持动态类别+国家+免费/付费）"""
+    print(f"[API /api/appstore/top20] 收到参数: category={category}, chart_type={chart_type}, country={country}")
+    apps = AppStoreScraper.fetch_top20(category=category.upper(), chart_type=chart_type, country=country.upper())
     previous = AppStoreScraper._get_previous_snapshot()
     prev_apps = previous.get("apps", []) if previous else []
 

@@ -20,25 +20,47 @@ const APP_TYPES = [
   { key: "game", zh: "游戏", en: "Game" },
 ];
 
-/* ─── 类别列表（根据 app_type 动态变化） ─── */
+/* ─── 类别列表（根据 app_type 动态变化，需与后端 ITUNES_GENRE_MAP 同步） ─── */
 const CATEGORY_MAP = {
   app: [
-    { key: "ART_AND_DESIGN", zh: "图形设计", en: "Art & Design" },
-    { key: "TOOLS",        zh: "工具",     en: "Tools" },
-    { key: "PHOTOGRAPHY",  zh: "摄影",     en: "Photography" },
+    { key: "ART_AND_DESIGN", zh: "图形设计", en: "Graphics & Design" },
+    { key: "TOOLS",        zh: "工具",     en: "Utilities" },
+    { key: "PHOTOGRAPHY",  zh: "摄影录像", en: "Photo & Video" },
     { key: "PRODUCTIVITY",  zh: "效率",     en: "Productivity" },
     { key: "BUSINESS",      zh: "商务",     en: "Business" },
     { key: "EDUCATION",     zh: "教育",     en: "Education" },
     { key: "ENTERTAINMENT", zh: "娱乐",     en: "Entertainment" },
     { key: "LIFESTYLE",     zh: "生活",     en: "Lifestyle" },
+    { key: "HEALTH_FITNESS",zh: "健康健身", en: "Health & Fitness" },
+    { key: "MUSIC",        zh: "音乐",     en: "Music" },
+    { key: "NEWS",         zh: "新闻",     en: "News" },
+    { key: "WEATHER",      zh: "天气",     en: "Weather" },
+    { key: "NAVIGATION",   zh: "导航",     en: "Navigation" },
+    { key: "FINANCE",      zh: "财务",     en: "Finance" },
+    { key: "SHOPPING",     zh: "购物",     en: "Shopping" },
+    { key: "FOOD_DRINK",   zh: "美食饮品", en: "Food & Drink" },
+    { key: "MEDICAL",      zh: "医疗",     en: "Medical" },
+    { key: "REFERENCE",    zh: "参考",     en: "Reference" },
+    { key: "SOCIAL_NETWORKING", zh: "社交", en: "Social Networking" },
+    { key: "TRAVEL",       zh: "旅行",     en: "Travel" },
   ],
   game: [
-    { key: "GAME_ACTION",   zh: "动作",     en: "Action" },
+    { key: "GAME_ACTION",     zh: "动作",     en: "Action" },
+    { key: "GAME_ADVENTURE",  zh: "冒险",     en: "Adventure" },
+    { key: "GAME_ARCADE",    zh: "街机",     en: "Arcade" },
+    { key: "GAME_BOARD",     zh: "桌游",     en: "Board" },
+    { key: "GAME_CARD",      zh: "卡牌",     en: "Card" },
+    { key: "GAME_CASINO",    zh: "赌场",     en: "Casino" },
     { key: "GAME_PUZZLE",   zh: "益智",     en: "Puzzle" },
-    { key: "GAME_STRATEGY", zh: "策略",     en: "Strategy" },
-    { key: "GAME_ARCADE",   zh: "街机",     en: "Arcade" },
-    { key: "GAME_CASUAL",   zh: "休闲",     en: "Casual" },
-    { key: "GAME_RACING",   zh: "竞速",     en: "Racing" },
+    { key: "GAME_RACING",    zh: "竞速",     en: "Racing" },
+    { key: "GAME_ROLE_PLAYING", zh: "角色扮演", en: "Role Playing" },
+    { key: "GAME_SIMULATION", zh: "模拟",     en: "Simulation" },
+    { key: "GAME_SPORTS",    zh: "体育",     en: "Sports" },
+    { key: "GAME_STRATEGY",  zh: "策略",     en: "Strategy" },
+    { key: "GAME_TRIVIA",    zh: "问答",     en: "Trivia" },
+    { key: "GAME_WORD",      zh: "文字",     en: "Word" },
+    { key: "GAME_FAMILY",    zh: "家庭",     en: "Family" },
+    { key: "GAME_CASUAL",    zh: "休闲",     en: "Casual" },
   ],
 };
 
@@ -125,7 +147,7 @@ export default function StoreRanking() {
       let apps = [];
       if (store === "app_store") {
         const res = await axios.get(`${API}/api/appstore/top20`, {
-          params: { category, chart_type: "free" },
+          params: { category, chart_type: "free", country },
         });
         apps = res.data.apps || [];
       } else if (store === "google_play") {
@@ -156,7 +178,7 @@ export default function StoreRanking() {
       let apps = [];
       if (store === "app_store") {
         const res = await axios.get(`${API}/api/appstore/top20`, {
-          params: { category, chart_type: "paid", sort_by: "rank" },
+          params: { category, chart_type: "paid", country },
         });
         apps = res.data.apps || [];
       } else if (store === "google_play") {
@@ -192,7 +214,7 @@ export default function StoreRanking() {
   };
 
   const handleAppClick = (app) => {
-    navigate(`/app/${app.app_id || app.id}`);
+    navigate(`/appstore/${app.app_id || app.id}`);
   };
 
   const currentCatLabel = currentCategories.find(c => c.key === category)?.zh || category;
