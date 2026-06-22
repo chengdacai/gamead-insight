@@ -658,6 +658,53 @@ body {
 .toolbar-refresh:hover:not(:disabled) { opacity: 0.85; }
 .toolbar-refresh:disabled { opacity: 0.5; cursor: default; }
 
+/* 增长分析开关（Insightrackr 风格） */
+.growth-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s;
+}
+.growth-toggle:hover {
+  background: rgba(108,92,231,0.12);
+  border-color: rgba(108,92,231,0.3);
+  color: #a29bfe;
+}
+.growth-toggle input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.1);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.25s;
+}
+.growth-toggle input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #6c5ce7, #a55eea);
+}
+.growth-toggle input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.25s;
+}
+.growth-toggle input[type="checkbox"]:checked::after {
+  transform: translateX(14px);
+}
+
 /* 提示文字 */
 .ranking-hint {
   margin-top: 10px;

@@ -23,15 +23,17 @@ HEADERS = {
 PROXIES = None
 
 # iTunes 类别 ID 映射（App Store Genre IDs）
+# ⚠️ 这些 ID 是通过搜索知名App反推+RSS验证得到的正确映射
+# 旧 ID（6004等）已验证错误，会返回错误的类别数据
 ITUNES_GENRE_MAP = {
     "TOOLS":          {"id": 6002, "zh": "工具",     "en": "Utilities"},
-    "ART_AND_DESIGN": {"id": 6004, "zh": "图形设计", "en": "Graphics & Design"},
-    "PHOTOGRAPHY":    {"id": 5902, "zh": "摄影",     "en": "Photo & Video"},
-    "PRODUCTIVITY":   {"id": 7013, "zh": "效率",     "en": "Productivity"},
+    "ART_AND_DESIGN": {"id": 6027, "zh": "图形设计", "en": "Graphics & Design"},   # 旧6004→返回Sports!
+    "PHOTOGRAPHY":    {"id": 6008, "zh": "摄影",     "en": "Photo & Video"},       # 旧5902→错误
+    "PRODUCTIVITY":   {"id": 6007, "zh": "效率",     "en": "Productivity"},        # 旧7013→返回Games!
     "BUSINESS":       {"id": 6000, "zh": "商务",     "en": "Business"},
-    "EDUCATION":      {"id": 7012, "zh": "教育",     "en": "Education"},
-    "ENTERTAINMENT":  {"id": 7002, "zh": "娱乐",     "en": "Entertainment"},
-    "LIFESTYLE":      {"id": 7001, "zh": "生活",     "en": "Lifestyle"},
+    "EDUCATION":      {"id": 6017, "zh": "教育",     "en": "Education"},          # 旧7012→返回Games!
+    "ENTERTAINMENT":  {"id": 6016, "zh": "娱乐",     "en": "Entertainment"},       # 旧7002→返回Games!
+    "LIFESTYLE":      {"id": 6012, "zh": "生活",     "en": "Lifestyle"},
 }
 
 # 默认类别
@@ -120,8 +122,8 @@ class AppStoreScraper:
         return None
 
     @staticmethod
-    def fetch_top20(category: str = "TOOLS") -> list[dict]:
-        """抓取指定类别的 Top 20 榜单（支持动态类别切换）"""
+    def fetch_top20(category: str = "TOOLS", chart_type: str = "free") -> list[dict]:
+        """抓取指定类别的 Top 20 榜单（支持动态类别切换 + 免费/付费榜）"""
         apps = []
         # 获取类别 ID
         genre_info = ITUNES_GENRE_MAP.get(category.upper(), ITUNES_GENRE_MAP[DEFAULT_GENRE])
@@ -129,7 +131,10 @@ class AppStoreScraper:
         category_zh = genre_info["zh"]
         category_en = genre_info["en"]
 
-        url = f"https://itunes.apple.com/us/rss/topfreeapplications/limit=25/genre={genre_id}/json"
+        # 根据榜单类型选择 RSS feed
+        feed_type = "topfreeapplications" if chart_type == "free" else "toppaidapplications"
+        url = f"https://itunes.apple.com/us/rss/{feed_type}/limit=25/genre={genre_id}/json"
+        print(f"[AppStore] 抓取: {category_en}({category_zh}) {chart_type}榜 | genre_id={genre_id}")
         try:
             resp = requests.get(url, headers=HEADERS, proxies=PROXIES, timeout=20)
             if resp.status_code != 200:

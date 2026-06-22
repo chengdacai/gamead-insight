@@ -405,9 +405,10 @@ def _refresh_app_store(force: bool = False):
 async def get_app_store_top20(
     category: str = Query("TOOLS", description="类别: TOOLS/ART_AND_DESIGN/PHOTOGRAPHY/PRODUCTIVITY/BUSINESS"),
     sort_by: str = Query("rank", description="排序: rank / rating / changes"),
+    chart_type: str = Query("free", description="榜单类型: free(免费榜) / paid(付费榜)"),
 ):
-    """获取指定类别的 App Store Top 20 榜单（含变更检测，支持动态类别切换）"""
-    apps = AppStoreScraper.fetch_top20(category=category.upper())
+    """获取指定类别的 App Store Top 20 榜单（含变更检测，支持动态类别切换+免费/付费）"""
+    apps = AppStoreScraper.fetch_top20(category=category.upper(), chart_type=chart_type)
     previous = AppStoreScraper._get_previous_snapshot()
     prev_apps = previous.get("apps", []) if previous else []
 
