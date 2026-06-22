@@ -48,7 +48,9 @@ export default function StoreRanking() {
     try {
       let apps = [];
       if (store === "app_store") {
-        const res = await axios.get(`${API}/api/appstore/top20`);
+        const res = await axios.get(`${API}/api/appstore/top20`, {
+          params: { category: category },
+        });
         apps = res.data.apps || [];
       } else if (store === "google_play") {
         const res = await axios.get(`${API}/api/googleplay/top`, {
@@ -58,7 +60,9 @@ export default function StoreRanking() {
       } else {
         // combined
         const [asRes, gpRes] = await Promise.all([
-          axios.get(`${API}/api/appstore/top20`),
+          axios.get(`${API}/api/appstore/top20`, {
+            params: { category: category },
+          }),
           axios.get(`${API}/api/googleplay/top`, {
             params: { category: category, country, chart_type: chartType, limit },
           }),

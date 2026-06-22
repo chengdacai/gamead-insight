@@ -403,10 +403,16 @@ def _refresh_app_store(force: bool = False):
 
 @app.get("/api/appstore/top20")
 async def get_app_store_top20(
+    category: str = Query("TOOLS", description="类别: TOOLS/ART_AND_DESIGN/PHOTOGRAPHY/PRODUCTIVITY/BUSINESS"),
     sort_by: str = Query("rank", description="排序: rank / rating / changes"),
 ):
-    """获取工具类 App Store Top 20 榜单（含变更检测）"""
-    apps, changes = _refresh_app_store()
+    """获取指定类别的 App Store Top 20 榜单（含变更检测，支持动态类别切换）"""
+    apps = AppStoreScraper.fetch_top20(category=category.upper())
+    previous = AppStoreScraper._get_previous_snapshot()
+    prev_apps = previous.get("apps", []) if previous else []
+
+    changes = AppStoreScraper.detect_changes(apps, prev_apps)
+    AppStoreScraper.save_snapshot(apps)
 
     # 合并变更信息
     change_map = {c["app_id"]: c for c in changes}

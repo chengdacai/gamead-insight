@@ -22,8 +22,21 @@ HEADERS = {
 }
 PROXIES = None
 
-# iTunes 工具类(Utilities) genre ID = 6002
-ITUNES_TOP_RSS = "https://itunes.apple.com/us/rss/toppaidapplications/limit=25/genre=6002/json"
+# iTunes 类别 ID 映射（App Store Genre IDs）
+ITUNES_GENRE_MAP = {
+    "TOOLS":          {"id": 6002, "zh": "工具",     "en": "Utilities"},
+    "ART_AND_DESIGN": {"id": 6004, "zh": "图形设计", "en": "Graphics & Design"},
+    "PHOTOGRAPHY":    {"id": 5902, "zh": "摄影",     "en": "Photo & Video"},
+    "PRODUCTIVITY":   {"id": 7013, "zh": "效率",     "en": "Productivity"},
+    "BUSINESS":       {"id": 6000, "zh": "商务",     "en": "Business"},
+    "EDUCATION":      {"id": 7012, "zh": "教育",     "en": "Education"},
+    "ENTERTAINMENT":  {"id": 7002, "zh": "娱乐",     "en": "Entertainment"},
+    "LIFESTYLE":      {"id": 7001, "zh": "生活",     "en": "Lifestyle"},
+}
+
+# 默认类别
+DEFAULT_GENRE = "TOOLS"
+ITUNES_TOP_RSS = f"https://itunes.apple.com/us/rss/topfreeapplications/limit=25/genre={ITUNES_GENRE_MAP[DEFAULT_GENRE]['id']}/json"
 ITUNES_LOOKUP = "https://itunes.apple.com/lookup"
 HISTORY_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "app_history")
 
@@ -107,13 +120,20 @@ class AppStoreScraper:
         return None
 
     @staticmethod
-    def fetch_top20() -> list[dict]:
-        """抓取工具类 Top 20 榜单"""
+    def fetch_top20(category: str = "TOOLS") -> list[dict]:
+        """抓取指定类别的 Top 20 榜单（支持动态类别切换）"""
         apps = []
+        # 获取类别 ID
+        genre_info = ITUNES_GENRE_MAP.get(category.upper(), ITUNES_GENRE_MAP[DEFAULT_GENRE])
+        genre_id = genre_info["id"]
+        category_zh = genre_info["zh"]
+        category_en = genre_info["en"]
+
+        url = f"https://itunes.apple.com/us/rss/topfreeapplications/limit=25/genre={genre_id}/json"
         try:
-            resp = requests.get(ITUNES_TOP_RSS, headers=HEADERS, proxies=PROXIES, timeout=20)
+            resp = requests.get(url, headers=HEADERS, proxies=PROXIES, timeout=20)
             if resp.status_code != 200:
-                return _fallback_top20()
+                return _fallback_top20(category)
 
             data = resp.json()
             entries = data.get("feed", {}).get("entry", [])
@@ -123,7 +143,6 @@ class AppStoreScraper:
                     app_id = entry.get("id", {}).get("attributes", {}).get("im:id", "")
                     name = entry.get("im:name", {}).get("label", "Unknown")
                     developer = entry.get("im:artist", {}).get("label", "Unknown")
-                    category = entry.get("category", {}).get("attributes", {}).get("label", "")
                     release_date = entry.get("im:releaseDate", {}).get("label", "")
                     price = entry.get("im:price", {}).get("attributes", {}).get("amount", "0")
                     icon_url = ""
@@ -139,7 +158,8 @@ class AppStoreScraper:
                         "app_id": app_id,
                         "name": name,
                         "developer": developer,
-                        "category": category,
+                        "category": category_en,
+                        "category_zh": category_zh,
                         "icon_url": icon_url,
                         "price": float(price),
                         "summary": entry.get("summary", {}).get("label", "")[:200],
@@ -152,13 +172,17 @@ class AppStoreScraper:
                         "bundle_id": detail.get("bundle_id", ""),
                         "seller_url": detail.get("seller_url", ""),
                         "size_bytes": detail.get("size_bytes", 0),
+                        "store": "app_store",
+                        "change_type": "none",
+                        "change_label_zh": "",
+                        "change_label_en": "",
                     })
                 except Exception as e:
                     continue
 
             return apps
         except Exception:
-            return _fallback_top20()
+            return _fallback_top20(category)
 
     @staticmethod
     def _fetch_app_detail(app_id: str) -> dict:
@@ -429,12 +453,15 @@ def _generate_specific_idea_en(app: dict, template_id: str) -> str:
     return ideas_map.get(template_id, f"Create a short video ad based on {name}'s core features.")
 
 
-def _fallback_top20() -> list[dict]:
+def _fallback_top20(category: str = "TOOLS") -> list[dict]:
     """当 iTunes API 不可用时的备用数据"""
+    genre_info = ITUNES_GENRE_MAP.get(category.upper(), ITUNES_GENRE_MAP[DEFAULT_GENRE])
     return [
-        {"rank": i+1, "app_id": f"fallback_{i}", "name": f"Tools App #{i+1}",
+        {"rank": i+1, "app_id": f"fallback_{category}_{i}", "name": f"{genre_info['zh']} App #{i+1}",
          "developer": "Developer", "icon_url": "", "price": 0.99, "rating": 4.5,
-         "rating_count": 50000, "version": "1.0", "description": "A useful tool app.",
-         "screenshots": [], "category": "Utilities", "release_date": "2026-01-01"}
+         "rating_count": 50000, "version": "1.0", "description": f"A useful {genre_info['en'].lower()} app.",
+         "screenshots": [], "category": genre_info["en"], "category_zh": genre_info["zh"],
+         "release_date": "2026-01-01", "store": "app_store",
+         "change_type": "none", "change_label_zh": "", "change_label_en": ""}
         for i in range(20)
     ]
