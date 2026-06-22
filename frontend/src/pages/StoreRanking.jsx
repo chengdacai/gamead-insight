@@ -279,7 +279,7 @@ export default function StoreRanking() {
         {/* 刷新按钮 */}
         <button className="toolbar-refresh" onClick={() => { fetchFree(); fetchPaid(); }} disabled={loading}>
           {loading ? <LoadingOutlined spin /> : <RocketOutlined />}
-          &nbsp;{loading ? "加载中..." : "刷新"}
+          {loading ? "加载中..." : "刷新"}
         </button>
       </div>
 

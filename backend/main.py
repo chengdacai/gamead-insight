@@ -410,6 +410,7 @@ async def get_app_store_top20(
 ):
     """获取指定类别的 App Store Top 20 榜单（含变更检测，支持动态类别+国家+免费/付费）"""
     print(f"[API /api/appstore/top20] 收到参数: category={category}, chart_type={chart_type}, country={country}")
+    print(f"[API] 调用 AppStoreScraper.fetch_top20(category='{category.upper()}', chart_type='{chart_type}', country='{country}')")
     apps = AppStoreScraper.fetch_top20(category=category.upper(), chart_type=chart_type, country=country.upper())
     previous = AppStoreScraper._get_previous_snapshot()
     prev_apps = previous.get("apps", []) if previous else []
@@ -644,13 +645,18 @@ def _merge_store_apps(as_apps: list, gp_apps: list) -> list:
 
 
 # ============ 静态文件服务（生产部署） ============
+# ⚠️ SPA 回调必须放在所有 API 路由之后，且只处理非 /api/ 路径
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
 if os.path.exists(STATIC_DIR):
-    # SPA 回退：所有非 API 路由返回 index.html
+    # SPA 回退：所有非 API 路由返回 index.html（仅当路径不是 /api/ 开头）
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """Serve SPA - all non-API routes return index.html for client-side routing"""
+        # 如果是 API 路径但没匹配到，返回 404 JSON 而非 HTML
+        if full_path.startswith("api/"):
+            from fastapi.responses import JSONResponse
+            return JSONResponse(status_code=404, content={"detail": f"API route not found: {full_path}"})
         file_path = os.path.join(STATIC_DIR, full_path) if full_path else ""
         if full_path and os.path.isfile(file_path):
             return FileResponse(file_path)

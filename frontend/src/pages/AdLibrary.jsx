@@ -50,7 +50,7 @@ export default function AdLibrary() {
           title_en:     "Visit Google Ads Transparency Center",
           body:        `Google Ads Transparency Center 数据需通过网页查看。`,
           body_en:      "Google Ads Transparency Center data requires web access.",
-          snapshot_url: `https://transparencycenter.google.com/?hl=en&type=ADS&query=${encodeURIComponent(query)}`,
+          snapshot_url: `https://adstransparency.google.com/?hl=en&type=ADS&query=${encodeURIComponent(query)}`,
           platforms_zh: ["Google Search", "YouTube"],
           first_seen:   "",
           last_seen:    "",
@@ -105,7 +105,6 @@ export default function AdLibrary() {
           }}>
             {[
               { key: "meta",   icon: <FacebookOutlined />, zh: "Meta",  en: "Meta (FB/IG)" },
-              { key: "google", icon: <GoogleOutlined />,   zh: "Google", en: "Google Ads"      },
               { key: "google", icon: <GoogleOutlined />,   zh: "Google", en: "Google Ads"      },
             ].map(p => (
               <button
