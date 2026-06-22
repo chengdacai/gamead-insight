@@ -467,15 +467,47 @@ async def get_app_store_changes():
 
 @app.get("/api/appstore/app/{app_id}")
 async def get_app_detail(app_id: str):
-    """获取单个 App 详情 + 广告创意思路"""
+    """获取单个 App 详情 + 广告创意思路（通过 iTunes Lookup 精确查找）"""
+    import httpx
+
+    # 方法1：先用 iTunes Lookup API 精确查找（最可靠，不依赖缓存）
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            lookup_url = f"https://itunes.apple.com/lookup?id={app_id}"
+            resp = await client.get(lookup_url)
+            result = resp.json()
+            results = result.get("results", [])
+            if results:
+                itunes_app = results[0]
+                # 转换为统一格式
+                app = {
+                    "app_id": str(itunes_app.get("trackId", app_id)),
+                    "name": itunes_app.get("trackName", "Unknown"),
+                    "developer": itunes_app.get("artistName", "Unknown"),
+                    "icon_url": itunes_app.get("artworkUrl512") or itunes_app.get("artworkUrl100", ""),
+                    "rating": itunes_app.get("averageUserRating", 0) or 0,
+                    "rating_count": itunes_app.get("userRatingCount", 0) or 0,
+                    "price": itunes_app.get("price", 0) or 0,
+                    "version": itunes_app.get("version", "—"),
+                    "category": itunes_app.get("primaryGenreName", "—"),
+                    "description": itunes_app.get("description", "")[:500],
+                    "screenshots": itunes_app.get("screenshotUrls", [])[:5],
+                    "rank": 0,
+                    "changes": [],
+                    "alert_level": "none",
+                }
+                ideas = AppStoreScraper.get_creative_ideas(app)
+                return {"app": app, "creative_ideas": ideas}
+    except Exception as e:
+        print(f"[API] iTunes Lookup 失败: {e}, 尝试从缓存中查找...")
+
+    # 方法2：从缓存中搜索（兜底）
     apps, _ = _refresh_app_store()
     for app in apps:
-        if app.get("app_id") == app_id:
+        if app.get("app_id") == app_id or str(app.get("id", "")) == app_id:
             ideas = AppStoreScraper.get_creative_ideas(app)
-            return {
-                "app": app,
-                "creative_ideas": ideas,
-            }
+            return {"app": app, "creative_ideas": ideas}
+
     raise HTTPException(status_code=404, detail=f"App {app_id} not found")
 
 

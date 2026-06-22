@@ -10,17 +10,39 @@ export default function AppDetail() {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
+    setLoading(true)
+    setError(null)
+    setData(null)
     fetch(`${API_BASE}/appstore/app/${appId}`)
-      .then(r => r.json())
-      .then(d => setData(d))
-      .catch(() => navigate('/appstore'))
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
+      .then(d => {
+        if (!d || !d.app) throw new Error('App 数据为空')
+        setData(d)
+      })
+      .catch(err => {
+        console.error('[AppDetail] 加载失败:', err)
+        setError(err.message || '加载失败')
+      })
       .finally(() => setLoading(false))
   }, [appId])
 
-  if (loading) return <div className="empty-state"><div className="empty-icon">⬡</div><div className="empty-text-zh">加载中...</div><div className="empty-text-en">Loading...</div></div>
-  if (!data) return null
+  if (loading) return <div className="empty-state"><div className="empty-icon">⬡</div><div className="empty-text-zh">加载中...</div><div className="empty-text-en">Loading app details...</div></div>
+  if (error || !data) return (
+    <div className="empty-state" style={{padding: '60px 20px'}}>
+      <div className="empty-icon" style={{fontSize:48}}>⚠️</div>
+      <div className="empty-text-zh" style={{marginTop:16}}>无法加载 App 详情</div>
+      <div className="empty-text-en">{error || '未知错误'} · ID: {appId}</div>
+      <button className="btn small" onClick={() => navigate('/appstore')} style={{marginTop:20}}>
+        ← 返回榜单 / Back to Rankings
+      </button>
+    </div>
+  )
 
   const { app, creative_ideas } = data
 
