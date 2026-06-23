@@ -8,8 +8,9 @@ export default function CompetitorWatch() {
   const [error, setError] = useState(null)
   const [monitorStatus, setMonitorStatus] = useState({})
   const [showSettings, setShowSettings] = useState(false)
-  const [settings, setSettings] = useState({ wecom_webhooks: [], check_interval_hours: 1 })
+  const [settings, setSettings] = useState({ wecom_webhooks: [], serverchan_send_keys: [], check_interval_hours: 1 })
   const [newWebhookUrl, setNewWebhookUrl] = useState('')
+  const [newServerchanKey, setNewServerchanKey] = useState('')
   const [savingSettings, setSavingSettings] = useState(false)
   const [checkingAll, setCheckingAll] = useState(false)
   const [checkResult, setCheckResult] = useState(null)
@@ -35,6 +36,8 @@ export default function CompetitorWatch() {
         running: data.monitor_running,
         interval: data.check_interval_hours,
         wecom: data.wecom_configured,
+        serverchan: data.serverchan_configured,
+        any_notify: data.any_notify_configured,
       })
     } catch (e) {
       setError(e.message)
@@ -146,6 +149,13 @@ export default function CompetitorWatch() {
     setSettings({ ...settings, wecom_webhooks: (settings.wecom_webhooks || []).filter(u => u !== url) })
   }
 
+  const handleAddServerchanKey = () => {
+    if (!newServerchanKey.trim()) return
+    if (settings.serverchan_send_keys?.includes(newServerchanKey.trim())) return
+    setSettings({ ...settings, serverchan_send_keys: [...(settings.serverchan_send_keys || []), newServerchanKey.trim()] })
+    setNewServerchanKey('')
+  }
+
   const handleSaveSettings = async () => {
     setSavingSettings(true)
     try {
@@ -194,10 +204,12 @@ export default function CompetitorWatch() {
           <span className="status-label-zh">个竞品</span>
         </div>
         <div className="status-item">
-          <span>{monitorStatus.wecom ? '✅' : '⚠️'}</span>
-          <span className="status-label-zh">微信推送</span>
+          <span>{monitorStatus.any_notify ? '✅' : '⚠️'}</span>
+          <span className="status-label-zh">通知推送</span>
           <span className="status-label-en">
-            {monitorStatus.wecom ? 'OK' : '未配置'}
+            {monitorStatus.any_notify
+              ? `企微:${monitorStatus.wecom ? '✓' : '✗'} Server酱:${monitorStatus.serverchan ? '✓' : '✗'}`
+              : '未配置'}
           </span>
         </div>
         <div className="status-item">
@@ -438,8 +450,50 @@ export default function CompetitorWatch() {
 
             <div className="settings-field">
               <label>
-                <span className="label-zh">企业微信机器人 Webhook (可添加多个群)</span>
-                <span className="label-en">WeCom Bot Webhooks (multiple groups)</span>
+                <span className="label-zh">📱 Server酱 SendKey (普通微信可用)</span>
+                <span className="label-en">ServerChan SendKeys (for regular WeChat)</span>
+              </label>
+              <div className="webhook-list">
+                {(settings.serverchan_send_keys || []).map((key, i) => (
+                  <div className="webhook-item serverchan-item" key={i}>
+                    <span className="webhook-url" title={key}>{key.substring(0, 30)}...</span>
+                    <button className="btn btn-remove-webhook" onClick={() => {
+                      setSettings({...settings, serverchan_send_keys: (settings.serverchan_send_keys || []).filter(k => k !== key)})
+                    }}>✕</button>
+                  </div>
+                ))}
+              </div>
+              <div className="webhook-add-row">
+                <input
+                  type="text"
+                  placeholder="SCT123456..."
+                  value={newServerchanKey}
+                  onChange={e => setNewServerchanKey(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddServerchanKey()}
+                />
+                <button className="btn btn-add-webhook" onClick={handleAddServerchanKey}>+ 添加</button>
+              </div>
+              <div className="webhook-count">
+                已配置 {(settings.serverchan_send_keys || []).length} 个 SendKey
+              </div>
+              <div className="field-hint">
+                <details>
+                  <summary>如何获取 Server酱 SendKey？(无需企业微信!)</summary>
+                  <div className="hint-detail">
+                    <p><strong>①</strong> 打开 <a href="https://sct.ftqq.com/" target="_blank" rel="noreferrer">sct.ftqq.com</a> → 用<strong>普通微信</strong>扫码登录</p>
+                    <p><strong>②</strong> 在「消息通道」页面复制你的 SendKey（如 SCT123456...）</p>
+                    <p><strong>③</strong> 关注「方糖」公众号 → 即可在微信收到推送通知</p>
+                    <p><strong>④</strong> 免费额度：每天 5 条，对竞品监控足够</p>
+                    <p style={{color: 'var(--orange)', marginTop: 8}}>💡 <strong>普通微信就能用！不需要企业微信！</strong></p>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            <div className="settings-field">
+              <label>
+                <span className="label-zh">💬 企业微信机器人 Webhook (需企业微信)</span>
+                <span className="label-en">WeCom Bot Webhooks (requires WeCom)</span>
               </label>
               <div className="webhook-list">
                 {(settings.wecom_webhooks || []).map((url, i) => (
@@ -479,15 +533,15 @@ export default function CompetitorWatch() {
               <button
                 className="btn btn-test-push"
                 onClick={handleTestPush}
-                disabled={!settings.wecom_webhook}
+                disabled={!(settings.wecom_webhooks?.length || settings.serverchan_send_keys?.length)}
               >
                 📨 测试推送
               </button>
               {testPushResult && (
                 <span className={`test-result ${testPushResult.status === 'sent' ? 'success' : 'fail'}`}>
                   {testPushResult.status === 'sent'
-                    ? `✅ 推送成功！${testPushResult.success}/${testPushResult.total_webhooks} 个群已收到`
-                    : `❌ 推送失败: ${testPushResult.detail || '请检查 Webhook URL'}`}
+                    ? `✅ 推送成功！${testPushResult.success_targets}/${testPushResult.total_targets} 个目标已收到`
+                    : `❌ 推送失败: ${testPushResult.detail || '请检查通知渠道配置'}`}
                 </span>
               )}
               <div className="settings-buttons-right">

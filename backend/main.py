@@ -998,6 +998,7 @@ class WatchAppRequest(BaseModel):
 
 class MonitorSettingsRequest(BaseModel):
     wecom_webhooks: list[str] = []
+    serverchan_send_keys: list[str] = []
     check_interval_hours: int = 1
     notify_new_ads: bool = True
     notify_screenshot_changes: bool = True
@@ -1014,6 +1015,8 @@ async def api_get_watchlist():
         "monitor_running": status["running"],
         "check_interval_hours": status["check_interval_hours"],
         "wecom_configured": status["wecom_configured"],
+        "serverchan_configured": status["serverchan_configured"],
+        "any_notify_configured": status["any_notify_configured"],
     }
 
 
@@ -1092,32 +1095,20 @@ async def api_update_settings(settings: MonitorSettingsRequest):
 
 
 @app.post("/api/monitor/test-push")
-async def api_test_push():
-    """测试微信推送（推送到所有已配置的 Webhook）"""
-    from services.competitor_monitor import _get_webhook_urls, push_wecom_notification
-    webhooks = _get_webhook_urls()
-    if not webhooks:
-        raise HTTPException(status_code=400, detail="未配置企业微信 Webhook URL。请先在设置中添加。")
-
-    push_result = push_wecom_notification(
-        app_name="GameAd Insight",
-        app_id="test",
-        detections={
-            "has_new": True,
-            "total_new_ads": 1,
-            "details": [
-                {"type": "new_ad", "source": "🧪 测试消息 / Test", "title": "企业微信机器人配置正确！WeCom bot configured correctly!"}
-            ]
-        },
-        webhook_urls=webhooks
-    )
+async def api_test_push(channel: str = Query(None, description="渠道: wecom | serverchan | None=全部")):
+    """测试推送（指定渠道或全部已配置渠道）"""
+    from services.notification_service import test_push as do_test_push
+    result = do_test_push(channel)
+    if result.get("total_targets", 0) == 0:
+        raise HTTPException(status_code=400, detail="未配置任何通知渠道。请先在设置中添加企业微信 Webhook 或 Server酱 SendKey。")
 
     return {
-        "status": "sent" if push_result.get("success", 0) > 0 else "failed",
-        "total_webhooks": push_result.get("total", 0),
-        "success": push_result.get("success", 0),
-        "failed": push_result.get("failed", 0),
-        "results": push_result.get("results", []),
+        "status": "sent" if result.get("success_targets", 0) > 0 else "failed",
+        "total_channels": result.get("total_channels", 0),
+        "success_channels": result.get("success_channels", 0),
+        "total_targets": result.get("total_targets", 0),
+        "success_targets": result.get("success_targets", 0),
+        "details": result.get("details", []),
     }
 
 

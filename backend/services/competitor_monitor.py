@@ -467,44 +467,25 @@ def get_alerts(limit: int = 50) -> list[dict]:
     return alerts[:limit]
 
 
-# ============ 企业微信推送 ============
-
-def _get_webhook_urls() -> list[str]:
-    """获取所有企业微信 Webhook URL 列表"""
-    settings = _load_json(SETTINGS_FILE, {})
-    # 兼容旧版单 URL 字符串
-    wecom = settings.get("wecom_webhooks") or settings.get("wecom_webhook")
-    if isinstance(wecom, str):
-        return [wecom] if wecom else []
-    if isinstance(wecom, list):
-        return [w for w in wecom if w]
-    return []
-
+# ============ 统一推送（使用 notification_service）============
 
 def push_wecom_notification(app_name: str, app_id: str, detections: dict, webhook_urls: list[str] = None) -> dict:
     """
-    推送企业微信通知（支持多个群机器人）
-    返回: {total: 总数, success: 成功数, failed: 失败数, results: [...]}
+    推送通知（兼容旧接口，内部使用 notification_service）
+    返回: {total: 总数, success: 成功数, ...}
     """
-    if not webhook_urls:
-        webhook_urls = _get_webhook_urls()
-
-    if not webhook_urls:
-        print("[Monitor] 未配置企业微信 Webhook，跳过推送")
-        return {"total": 0, "success": 0, "failed": 0, "results": [], "message": "未配置 Webhook"}
+    from services.notification_service import push_notification
 
     details = detections.get("details", [])
     if not details:
-        return False
+        return {"total": 0, "success": 0, "results": [], "message": "无变更内容"}
 
-    # 构建 Markdown 消息
     new_ad_count = detections.get("total_new_ads", 0)
     new_ss_count = detections.get("total_new_screenshots", 0)
 
+    # 构建 Markdown 消息
     lines = [
-        f'## 🔔 竞品广告提醒',
-        f'',
-        f'**{app_name}** 检测到新动态 ({new_ad_count} 个变更)',
+        f'**{app_name}** 检测到新动态',
         f'',
     ]
 
@@ -525,39 +506,14 @@ def push_wecom_notification(app_name: str, app_id: str, detections: dict, webhoo
             lines.append(f'')
 
     lines.append(f'')
-    # 添加查看链接
-    site_url = os.getenv("SITE_URL", "https://gamead-insight.onrender.com")
-    lines.append(f'[查看详情 →]({site_url}/appstore/{app_id})')
-    lines.append(f'')
-    lines.append(f'<font color="comment">{_now_iso()[:19]}</font>')
+    lines.append(f'> 检查时间: {_now_iso()[:19]}')
 
-    content = "\n".join(lines)
+    body = "\n".join(lines)
+    title = f'🔔 {app_name} 竞品动态 ({new_ad_count}变更)'
 
-    results = []
-    success_count = 0
-    for idx, wurl in enumerate(webhook_urls):
-        try:
-            payload = {"msgtype": "markdown", "markdown": {"content": content}}
-            resp = sync_requests.post(wurl, json=payload, timeout=10)
-            if resp.status_code == 200:
-                resp_data = resp.json()
-                if resp_data.get("errcode") == 0:
-                    success_count += 1
-                    results.append({"url": wurl[:80] + "...", "status": "ok"})
-                else:
-                    results.append({"url": wurl[:80] + "...", "status": "fail", "error": resp_data})
-            else:
-                results.append({"url": wurl[:80] + "...", "status": "fail", "error": f"HTTP {resp.status_code}"})
-        except Exception as e:
-            results.append({"url": wurl[:80] + "...", "status": "fail", "error": str(e)})
-
-    print(f"[Monitor] 微信推送完成: {app_name} → {success_count}/{len(webhook_urls)} 成功")
-    return {
-        "total": len(webhook_urls),
-        "success": success_count,
-        "failed": len(webhook_urls) - success_count,
-        "results": results,
-    }
+    result = push_notification(title, body)
+    print(f"[Monitor] 推送完成: {app_name} → {result.get('success_targets', 0)}/{result.get('total_targets', 0)}")
+    return result
 
 
 # ============ 核心监控逻辑 ============
@@ -597,13 +553,11 @@ def check_single_app(app: dict, save_snapshot_flag: bool = True) -> dict:
     if updated:
         _save_json(WATCHLIST_FILE, items)
 
-    # 5. 如果有新广告，推送微信 + 记录警报
+    # 5. 如果有新广告，推送通知 + 记录警报
     pushed = False
     if detections.get("has_new"):
-        webhooks = _get_webhook_urls()
-        if webhooks:
-            push_result = push_wecom_notification(app_name, app_id, detections, webhooks)
-            pushed = push_result.get("success", 0) > 0
+        push_result = push_wecom_notification(app_name, app_id, detections)
+        pushed = push_result.get("success_targets", 0) > 0
 
         # 记录警报
         log_alert({
@@ -656,6 +610,7 @@ def get_settings() -> dict:
     defaults = {
         "check_interval_hours": 1,
         "wecom_webhooks": [],
+        "serverchan_send_keys": [],
         "notify_new_ads": True,
         "notify_screenshot_changes": True,
         "language": "zh",
@@ -665,6 +620,9 @@ def get_settings() -> dict:
     if "wecom_webhook" in settings and "wecom_webhooks" not in settings:
         old = settings.pop("wecom_webhook", "")
         settings["wecom_webhooks"] = [old] if old else []
+    # 兼容旧版没有 serverchan_send_keys
+    if "serverchan_send_keys" not in settings:
+        settings["serverchan_send_keys"] = []
     return {**defaults, **settings}
 
 
@@ -728,12 +686,18 @@ def get_monitor_status() -> dict:
     checked = sum(1 for i in items if i.get("last_checked"))
     total_alerts = sum(i.get("total_alerts", 0) for i in items)
 
+    # 检查通知渠道配置
+    from services.notification_service import get_notify_channels
+    notify = get_notify_channels()
+
     return {
         "running": _monitor_running,
-        "check_interval_hours": settings.get("check_interval_hours", 6),
+        "check_interval_hours": settings.get("check_interval_hours", 1),
         "total_watching": len(items),
         "checked_count": checked,
         "total_alerts": total_alerts,
         "recent_alerts": recent_alerts[:5],
-        "wecom_configured": len(_get_webhook_urls()) > 0,
+        "wecom_configured": len(notify["wecom"]["webhooks"]) > 0,
+        "serverchan_configured": len(notify["serverchan"]["send_keys"]) > 0,
+        "any_notify_configured": (len(notify["wecom"]["webhooks"]) > 0 or len(notify["serverchan"]["send_keys"]) > 0),
     }
