@@ -1,6 +1,15 @@
 # GameAd Insight - Render Dockerfile
-# 包含 Chrome 用于 Facebook Ad Library 爬虫
+# Multi-stage build: 前端编译 + 后端 + Chrome
 
+# ===== Stage 1: 编译前端 =====
+FROM node:22-alpine AS frontend-builder
+WORKDIR /frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
+
+# ===== Stage 2: 后端 + 静态文件 =====
 FROM python:3.11-slim
 
 # 安装 Chrome
@@ -19,11 +28,11 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制代码
+# 复制后端代码
 COPY backend/ .
 
-# 确保 static 目录存在
-RUN mkdir -p static
+# 从前端构建阶段复制编译产物
+COPY --from=frontend-builder /frontend/dist/ ./static/
 
 # 设置 Chrome 环境变量
 ENV CHROME_BIN=/usr/bin/google-chrome-stable

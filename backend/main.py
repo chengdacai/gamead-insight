@@ -36,6 +36,13 @@ from pydantic import BaseModel
 from services.data_sources import DataAggregator
 from services.ai_analyzer import AIAnalyzer
 from services.app_store_scraper import AppStoreScraper
+from services.competitor_monitor import (
+    get_watchlist, add_to_watchlist, remove_from_watchlist,
+    check_single_app, check_all, get_alerts,
+    get_settings as get_monitor_settings, update_settings,
+    get_monitor_status, start_background_monitor,
+    push_wecom_notification,
+)
 from models.topic import HotspotTopic, TopicListResponse
 
 
@@ -976,6 +983,145 @@ def _merge_store_apps(as_apps: list, gp_apps: list) -> list:
     return merged
 
 
+# ============ 竞品监控 API ============
+
+class WatchAppRequest(BaseModel):
+    app_id: str
+    name: str
+    developer: str = ""
+    icon_url: str = ""
+    platform: str = "app_store"
+    bundle_id: str = ""
+    country: str = "US"
+    tags: list[str] = []
+
+
+class MonitorSettingsRequest(BaseModel):
+    wecom_webhook: str = ""
+    check_interval_hours: int = 6
+    notify_new_ads: bool = True
+    notify_screenshot_changes: bool = True
+
+
+@app.get("/api/monitor/watchlist")
+async def api_get_watchlist():
+    """获取竞品关注列表"""
+    items = get_watchlist()
+    status = get_monitor_status()
+    return {
+        "total": len(items),
+        "items": items,
+        "monitor_running": status["running"],
+        "check_interval_hours": status["check_interval_hours"],
+        "wecom_configured": status["wecom_configured"],
+    }
+
+
+@app.post("/api/monitor/watch")
+async def api_add_watch(app: WatchAppRequest):
+    """添加 App 到关注列表"""
+    result = add_to_watchlist(app.model_dump())
+    return result
+
+
+@app.delete("/api/monitor/watch/{app_id}")
+async def api_remove_watch(app_id: str, platform: str = Query("app_store")):
+    """从关注列表移除 App"""
+    result = remove_from_watchlist(app_id, platform)
+    return result
+
+
+@app.post("/api/monitor/watch/bulk")
+async def api_bulk_watch(apps: list[WatchAppRequest]):
+    """批量添加 App 到关注列表"""
+    results = []
+    for app in apps:
+        r = add_to_watchlist(app.model_dump())
+        results.append(r)
+    return {"total": len(apps), "added": sum(1 for r in results if r.get("status") == "added"), "results": results}
+
+
+@app.post("/api/monitor/check")
+async def api_check_all():
+    """手动触发全量检查"""
+    results = check_all()
+    return {
+        "total_checked": len(results),
+        "new_ads_found": sum(1 for r in results if r.get("detections", {}).get("has_new")),
+        "results": results,
+        "checked_at": results[0]["checked_at"] if results else None,
+    }
+
+
+@app.post("/api/monitor/check/{app_id}")
+async def api_check_single(app_id: str, platform: str = Query("app_store")):
+    """手动检查单个 App"""
+    items = get_watchlist()
+    app = None
+    for item in items:
+        if str(item.get("app_id")) == app_id and item.get("platform") == platform:
+            app = item
+            break
+    if not app:
+        raise HTTPException(status_code=404, detail=f"App {app_id} not in watchlist")
+
+    result = check_single_app(app)
+    return result
+
+
+@app.get("/api/monitor/history/{app_id}")
+async def api_get_history(app_id: str, platform: str = Query("app_store")):
+    """获取指定 App 的警报历史"""
+    from services.competitor_monitor import get_alerts
+    all_alerts = get_alerts(200)
+    matched = [a for a in all_alerts if str(a.get("app_id")) == app_id and a.get("platform") == platform]
+    return {"app_id": app_id, "total": len(matched), "alerts": matched}
+
+
+@app.get("/api/monitor/settings")
+async def api_get_settings():
+    """获取监控设置"""
+    return get_monitor_settings()
+
+
+@app.post("/api/monitor/settings")
+async def api_update_settings(settings: MonitorSettingsRequest):
+    """更新监控设置"""
+    updated = update_settings(settings.model_dump())
+    return {"status": "updated", "settings": updated}
+
+
+@app.post("/api/monitor/test-push")
+async def api_test_push():
+    """测试微信推送"""
+    settings = get_monitor_settings()
+    webhook = settings.get("wecom_webhook", "")
+    if not webhook:
+        raise HTTPException(status_code=400, detail="未配置企业微信 Webhook URL。请先在设置中添加。")
+
+    from services.competitor_monitor import push_wecom_notification
+    test_result = push_wecom_notification(
+        app_name="GameAd Insight",
+        app_id="test",
+        detections={
+            "has_new": True,
+            "total_new_ads": 1,
+            "details": [
+                {"type": "new_ad", "source": "🧪 测试", "title": "这是一条测试消息，说明你的企业微信机器人配置正确！"}
+            ]
+        },
+        webhook_url=webhook
+    )
+
+    return {"status": "sent" if test_result else "failed", "webhook_configured": True}
+
+
+@app.get("/api/monitor/status")
+async def api_monitor_status():
+    """获取监控运行状态"""
+    return get_monitor_status()
+
+
 # ============ 静态文件服务（生产部署） ============
 # ⚠️ SPA 回调必须放在所有 API 路由之后，且只处理非 /api/ 路径
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
@@ -1026,6 +1172,13 @@ if __name__ == "__main__":
     refresh_thread = threading.Thread(target=_background_refresh_loop, daemon=True)
     refresh_thread.start()
     print(f"[后台] 定时刷新线程已启动，下次自动刷新: {_next_refresh_time.isoformat()}")
+
+    # 启动竞品监控后台线程
+    try:
+        start_background_monitor()
+        print("[后台] 竞品监控线程已启动")
+    except Exception as e:
+        print(f"[后台] 竞品监控启动失败: {e}")
 
     # 获取端口（Render 等平台通过 PORT 环境变量指定）
     port = int(os.getenv("PORT", "8000"))

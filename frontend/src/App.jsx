@@ -7,6 +7,7 @@ import AdLibrary from './pages/AdLibrary'
 import Trends from './pages/Trends'
 import Creative from './pages/Creative'
 import AppDetail from './pages/AppDetail'
+import CompetitorWatch from './pages/CompetitorWatch'
 
 const API_BASE = window.location.hostname === 'localhost' ? '/api' : '/api'
 
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
   { path: '/ads',         label: '广告素材库', labelEn: 'Ad Library',    icon: '▶' },
   { path: '/trends',     label: '热点趋势', labelEn: 'Trends',         icon: '✦' },
   { path: '/creative',   label: '创意模板', labelEn: 'Creative',      icon: '◆' },
+  { path: '/monitor',   label: '竞品监控', labelEn: 'Competitor Watch', icon: '📡' },
 ]
 
 export default function App() {
@@ -100,6 +102,7 @@ export default function App() {
             <Route path="/ads" element={<AdLibrary />} />
             <Route path="/trends" element={<Trends />} />
             <Route path="/creative" element={<Creative />} />
+            <Route path="/monitor" element={<CompetitorWatch />} />
           </Routes>
         </div>
       </main>

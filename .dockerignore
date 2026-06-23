@@ -1,0 +1,6 @@
+.git
+.gitignore
+*.md
+frontend/node_modules
+frontend/dist
+setup_all_apis.ps1
