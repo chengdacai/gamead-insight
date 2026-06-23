@@ -278,7 +278,17 @@ export default function AppDetail() {
               <button className="video-modal-close" onClick={() => setActiveVideo(null)}>✕</button>
             </div>
             <div className="video-modal-body">
-              {activeVideo.video_url ? (
+              {activeVideo.video_id ? (
+                <div style={{position:'relative', paddingBottom:'56.25%', height:0, background:'#000'}}>
+                  <iframe
+                    style={{position:'absolute', top:0, left:0, width:'100%', height:'100%', border:'none', borderRadius:'0 0 8px 8px'}}
+                    src={`https://www.youtube.com/embed/${activeVideo.video_id}?autoplay=1&rel=0`}
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    title={activeVideo.title}
+                  />
+                </div>
+              ) : activeVideo.video_url ? (
                 <video
                   controls
                   autoPlay
