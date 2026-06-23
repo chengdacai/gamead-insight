@@ -49,30 +49,54 @@ export default function CompetitorWatch() {
       .catch(() => {})
   }, [])
 
-  // 搜索 App
+  // 搜索 App — 跨所有类别
+  const SEARCH_CATEGORIES = [
+    'TOOLS', 'PRODUCTIVITY', 'BUSINESS', 'ART_AND_DESIGN', 'PHOTOGRAPHY',
+    'EDUCATION', 'ENTERTAINMENT', 'LIFESTYLE', 'HEALTH_FITNESS', 'MUSIC',
+    'SOCIAL_NETWORKING', 'TRAVEL', 'FINANCE', 'SHOPPING'
+  ]
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) return
     setSearching(true)
     setSearchResults([])
     try {
-      // 通过 iTunes + GP 搜索
-      const asRes = await fetch(`${API_BASE}/appstore/top20?category=TOOLS&limit=50`)
-      const asData = await asRes.json()
       const query = searchQuery.toLowerCase()
 
-      // 从 App Store 结果中筛选
-      const asHits = (asData.apps || []).filter(a =>
-        a.name?.toLowerCase().includes(query) ||
-        a.developer?.toLowerCase().includes(query)
-      ).slice(0, 10)
+      // App Store: 并行请求所有类别
+      const asRequests = SEARCH_CATEGORIES.map(cat =>
+        fetch(`${API_BASE}/appstore/top20?category=${cat}&limit=30`)
+          .then(r => r.json())
+          .then(d => d.apps || [])
+          .catch(() => [])
+      )
+      const asAll = (await Promise.all(asRequests)).flat()
 
-      // 从 Google Play 结果中筛选
-      const gpRes = await fetch(`${API_BASE}/googleplay/top?category=TOOLS&limit=50`)
-      const gpData = await gpRes.json()
-      const gpHits = (gpData.apps || []).filter(a =>
-        a.title?.toLowerCase().includes(query) ||
-        a.developer?.toLowerCase().includes(query)
-      ).slice(0, 5).map(a => ({
+      // Google Play: 并行请求所有类别
+      const gpRequests = SEARCH_CATEGORIES.map(cat =>
+        fetch(`${API_BASE}/googleplay/top?category=${cat}&limit=30`)
+          .then(r => r.json())
+          .then(d => d.apps || [])
+          .catch(() => [])
+      )
+      const gpAll = (await Promise.all(gpRequests)).flat()
+
+      // 去重 + 筛选
+      const seen = new Set()
+      const asHits = asAll.filter(a => {
+        const key = a.app_id || a.id || ''
+        if (seen.has(key)) return false
+        seen.add(key)
+        return a.name?.toLowerCase().includes(query) || a.developer?.toLowerCase().includes(query)
+      }).slice(0, 10)
+
+      const gpHits = gpAll.filter(a => {
+        const key = a.appId || a.app_id || ''
+        if (seen.has(key)) return false
+        seen.add(key)
+        return (a.title || a.name || '').toLowerCase().includes(query) ||
+               (a.developer || '').toLowerCase().includes(query)
+      }).slice(0, 5).map(a => ({
         id: a.appId || a.app_id || '',
         name: a.title || a.name || '',
         developer: a.developer || '',

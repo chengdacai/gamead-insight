@@ -12,7 +12,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 
-const API = "/api";
+const API = "";
 
 /* ─── Insightrackr 风格：应用类型（应用 / 游戏） ─── */
 const APP_TYPES = [
