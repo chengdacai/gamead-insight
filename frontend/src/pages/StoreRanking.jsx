@@ -73,13 +73,40 @@ const COUNTRIES = [
 ];
 
 /* ═══════════════════ 单个 App 卡片行（Insightrackr 风格） ═══════════════════ */
-function AppCard({ app, index, onClick, showGrowth }) {
+function AppCard({ app, index, onClick, showGrowth, onAddMonitor }) {
   const rank = app.rank ?? index + 1;
   const name = app.name || app.id || "未知应用";
   const dev = app.developer || app.store || "";
   const icon = app.icon_url || app.icon || "";
   const rating = app.rating;
   const isTop3 = rank <= 3;
+  const [addingWatch, setAddingWatch] = useState(false);
+  const [watched, setWatched] = useState(false);
+
+  const handleAddWatch = async (e) => {
+    e.stopPropagation();
+    if (addingWatch || watched) return;
+    setAddingWatch(true);
+    try {
+      const appId = app.app_id || app.id || '';
+      const platform = app.store === 'google_play' ? 'google_play' : 'app_store';
+      const r = await axios.post('/api/monitor/watch', {
+        app_id: String(appId),
+        name: name,
+        developer: dev,
+        icon_url: icon,
+        platform: platform,
+        country: 'US',
+      });
+      if (r.data.status === 'added' || r.data.status === 'already_watching') {
+        setWatched(true);
+      }
+    } catch (e) {
+      console.error('Add watch failed:', e);
+    } finally {
+      setAddingWatch(false);
+    }
+  };
 
   return (
     <div className="sr-card-row" onClick={() => onClick?.(app)} role="button" tabIndex={0}>
@@ -121,6 +148,16 @@ function AppCard({ app, index, onClick, showGrowth }) {
           </div>
         )}
       </div>
+
+      {/* 加入监控按钮 */}
+      <button
+        className={`sr-watch-btn ${watched ? 'watched' : ''}`}
+        onClick={handleAddWatch}
+        disabled={addingWatch || watched}
+        title={watched ? '已在监控中' : '加入竞品监控'}
+      >
+        {watched ? '✓ 监控中' : addingWatch ? '...' : '+ 监控'}
+      </button>
 
       {/* 右侧箭头 */}
       <CaretRightOutlined className="app-arrow" />

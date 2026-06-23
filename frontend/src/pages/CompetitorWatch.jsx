@@ -50,66 +50,22 @@ export default function CompetitorWatch() {
       .catch(() => {})
   }, [])
 
-  // ============ 搜索竞品（直接用 iTunes Search API，1 次请求搞定） ============
+  // ============ 搜索竞品（后端统一搜索，全库不限于榜单）============
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return
     setSearching(true)
     setSearchResults([])
     const term = encodeURIComponent(searchQuery.trim())
-    const hits = []
 
     try {
-      // App Store: 直接用 iTunes Search API（全库搜索，不限于某类别 Top20）
-      const asRes = await fetch(
-        `https://itunes.apple.com/search?term=${term}&entity=software&country=US&limit=20`
-      )
-      const asData = await asRes.json();
-      (asData.results || []).forEach(a => {
-        hits.push({
-          id: String(a.trackId || ''),
-          name: a.trackName || '',
-          developer: a.artistName || '',
-          icon: a.artworkUrl100 || '',
-          platform: 'app_store',
-        })
-      })
+      const r = await fetch(`${API_BASE}/monitor/search?q=${term}&country=US`)
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      const data = await r.json()
+      setSearchResults(data.results || [])
     } catch (e) {
-      console.error('App Store search failed:', e)
+      console.error('Search failed:', e)
     }
-
-    // Google Play 搜索
-    try {
-      const gpRes = await fetch(`${API_BASE}/googleplay/top?category=TOOLS&limit=50`)
-      const gpData = await gpRes.json();
-      (gpData.apps || []).filter(a =>
-        a.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        a.developer?.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 10).forEach(a => {
-        hits.push({
-          id: a.appId || a.app_id || '',
-          name: a.title || a.name || '',
-          developer: a.developer || '',
-          icon: a.icon || a.icon_url || '',
-          platform: 'google_play',
-        })
-      })
-    } catch (e) {
-      console.error('Google Play search failed:', e)
-    }
-
-    // 去重（App Store 优先）
-    const seen = new Set()
-    const deduped = []
-    for (const h of hits) {
-      const key = h.name + '|' + h.platform
-      if (!seen.has(key)) {
-        seen.add(key)
-        deduped.push(h)
-      }
-    }
-
-    setSearchResults(deduped.slice(0, 20))
     setSearching(false)
   }
 
@@ -121,11 +77,12 @@ export default function CompetitorWatch() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          app_id: app.id,
+          app_id: app.app_id || app.id,
           platform: app.platform,
           name: app.name,
           developer: app.developer,
-          icon_url: app.icon,
+          icon_url: app.icon || app.icon_url,
+          bundle_id: app.bundle_id || '',
           country: 'US',
         }),
       })
@@ -252,8 +209,8 @@ export default function CompetitorWatch() {
             {searchResults.map((app, i) => (
               <div className="watch-search-card" key={i}>
                 <div className="watch-search-card-icon">
-                  {app.icon ? (
-                    <img src={app.icon} alt="" onError={e => { e.target.style.display = 'none' }} />
+                  {(app.icon_url || app.icon) ? (
+                    <img src={app.icon_url || app.icon} alt="" onError={e => { e.target.style.display = 'none' }} />
                   ) : (
                     <div className="watch-search-icon-placeholder">{app.name?.[0] || '?'}</div>
                   )}

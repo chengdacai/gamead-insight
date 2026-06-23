@@ -1116,6 +1116,71 @@ async def api_test_push():
     return {"status": "sent" if test_result else "failed", "webhook_configured": True}
 
 
+@app.get("/api/monitor/search")
+async def api_search_apps(
+    q: str = Query(..., min_length=1, description="搜索关键词"),
+    country: str = Query("US"),
+):
+    """
+    全局搜索 App（用于添加竞品）
+    - App Store: iTunes Search API（全库搜索）
+    - Google Play: google-play-scraper search()
+    - 每次 1-2 次请求，不限于榜单/类别
+    """
+    import httpx
+    results = []
+    term = q.strip()
+
+    # ===== App Store: iTunes Search API (全库，1 次请求) =====
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            url = f"https://itunes.apple.com/search?term={term}&entity=software&country={country}&limit=20"
+            resp = await client.get(url)
+            data = resp.json()
+            for a in data.get("results", []):
+                results.append({
+                    "app_id": str(a.get("trackId", "")),
+                    "name": a.get("trackName", ""),
+                    "developer": a.get("artistName", ""),
+                    "icon_url": a.get("artworkUrl100", ""),
+                    "platform": "app_store",
+                    "rating": a.get("averageUserRating", 0) or 0,
+                    "category": a.get("primaryGenreName", ""),
+                    "bundle_id": a.get("bundleId", ""),
+                })
+    except Exception as e:
+        print(f"[MonitorSearch] App Store fail: {e}")
+
+    # ===== Google Play: google-play-scraper search() =====
+    try:
+        from google_play_scraper import search as gp_search
+        gp_results = gp_search(term, n_hits=15, country=country.lower())
+        for a in gp_results:
+            results.append({
+                "app_id": a.get("appId", ""),
+                "name": a.get("title", ""),
+                "developer": a.get("developer", ""),
+                "icon_url": a.get("icon", ""),
+                "platform": "google_play",
+                "rating": a.get("score", 0) or 0,
+                "category": a.get("genre", ""),
+                "bundle_id": a.get("appId", ""),
+            })
+    except Exception as e:
+        print(f"[MonitorSearch] Google Play fail: {e}")
+
+    # 去重
+    seen = set()
+    deduped = []
+    for r in results:
+        key = (r.get("name", "") + "|" + r.get("platform", "")).lower()
+        if key not in seen:
+            seen.add(key)
+            deduped.append(r)
+
+    return {"query": q, "total": len(deduped), "results": deduped[:20]}
+
+
 @app.get("/api/monitor/status")
 async def api_monitor_status():
     """获取监控运行状态"""
