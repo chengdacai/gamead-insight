@@ -567,21 +567,18 @@ async def get_google_play_app_detail(app_id: str, country: str = Query("US")):
 
 @app.get("/api/appstore/app/{app_id}/ads")
 async def get_app_ads(app_id: str, country: str = Query("US")):
-    """获取某个 App 的广告素材（Google Play 视频 + 双商店截图）"""
-    from services.meta_ad_library import search_ads_by_advertiser
+    """获取 App 广告素材 — Facebook Ad Library 真实广告 + Google Play 视频 + 截图"""
     import requests as sync_requests
+    from services.meta_ad_library import search_ads_by_advertiser
 
     app_name = ""
     developer = ""
     icon_url = ""
     screenshots = []
 
-    # 方式 1: iTunes Lookup API
+    # ===== 1. 获取 App 基本信息 =====
     try:
-        r = sync_requests.get(
-            f"https://itunes.apple.com/lookup?id={app_id}",
-            timeout=10,
-        )
+        r = sync_requests.get(f"https://itunes.apple.com/lookup?id={app_id}", timeout=10)
         result = r.json()
         if result.get("results"):
             rr = result["results"][0]
@@ -589,11 +586,9 @@ async def get_app_ads(app_id: str, country: str = Query("US")):
             developer = rr.get("artistName", "")
             icon_url = rr.get("artworkUrl512", "")
             screenshots = rr.get("screenshotUrls", [])
-            print(f"[AppAds] iTunes Lookup OK: {app_name}, {len(screenshots)} screenshots")
     except Exception as e:
         print(f"[AppAds] iTunes Lookup fail: {e}")
 
-    # 方式 2: 缓存兜底
     if not app_name:
         apps, _ = _refresh_app_store()
         for a in apps:
@@ -607,159 +602,113 @@ async def get_app_ads(app_id: str, country: str = Query("US")):
     if not app_name:
         raise HTTPException(status_code=404, detail=f"App {app_id} not found")
 
-    # ===== 尝试 Meta Ad Library（需要 Token）=====
-    meta_token = os.getenv("META_AD_API_TOKEN", "")
-    ads = search_ads_by_advertiser(
-        advertiser_name=app_name,
-        country=country,
-        limit=12,
-        use_api=bool(meta_token),
-        api_token=meta_token if meta_token else None,
-    )
-    is_real_ads = not any(a.get("is_placeholder") for a in ads)
+    # ===== 2. 🔥 优先：Facebook Ad Library 真实广告（无需 Token）=====
+    fb_source = "facebook_ad_library"
+    fb_ads = []
+    try:
+        from services.facebook_ad_scraper import search_facebook_ads
+        fb_ads = search_facebook_ads(app_name, country=country, limit=12, media_type="all")
+        print(f"[AppAds] Facebook Ad Library: {len(fb_ads)} ads for {app_name}")
+    except Exception as e:
+        print(f"[AppAds] Facebook scraper unavailable: {e}")
 
-    # ===== 尝试 Google Play 视频+截图 =====
+    # ===== 3. Meta API（如有 Token 则使用）=====
+    meta_token = os.getenv("META_AD_API_TOKEN", "")
+    meta_ads = []
+    if meta_token:
+        meta_ads = search_ads_by_advertiser(app_name, country, 12, use_api=True, api_token=meta_token)
+
+    # ===== 4. Google Play 视频+截图 =====
     gp_video_url = None
     gp_video_thumb = None
     gp_screenshots = []
-    gp_data_source = None
+    try:
+        from google_play_scraper import search as gp_search, app as gp_app
+        results = gp_search(app_name, n_hits=3, country=country.lower())
+        for r in results:
+            try:
+                pid = r.get("appId", "")
+                if not pid: continue
+                detail = gp_app(pid)
+                gp_screenshots = detail.get("screenshots", [])[:12]
+                gp_video_url = detail.get("video")
+                gp_video_thumb = detail.get("videoImage")
+                print(f"[AppAds] Google Play: {detail.get('title')} video={bool(gp_video_url)} ss={len(gp_screenshots)}")
+                break
+            except: continue
+    except Exception as e:
+        print(f"[AppAds] GP fail: {e}")
 
-    if not is_real_ads:
-        try:
-            from google_play_scraper import search as gp_search, app as gp_app
-            results = gp_search(app_name, n_hits=3, country=country.lower())
-            for r in results:
-                try:
-                    pid = r.get("appId", "")
-                    if not pid:
-                        continue
-                    detail = gp_app(pid)
-                    gp_screenshots = detail.get("screenshots", [])[:12]
-                    gp_video_url = detail.get("video")  # YouTube embed URL
-                    gp_video_thumb = detail.get("videoImage")
-                    gp_data_source = "google_play"
-                    print(f"[AppAds] Google Play OK: {detail.get('title')}, video={bool(gp_video_url)}, screenshots={len(gp_screenshots)}")
-                    break
-                except Exception as inner_e:
-                    continue
-        except Exception as e:
-            print(f"[AppAds] Google Play search fail: {e}")
+    # ===== 5. 合成最终广告列表 =====
+    has_fb = len(fb_ads) > 0
+    has_meta = len(meta_ads) > 0 and not any(a.get("is_placeholder") for a in meta_ads)
 
-    # ===== 构建广告卡片列表 =====
-    if is_real_ads:
-        # Meta API 有数据，直接返回
-        pass
+    if has_fb:
+        # 🔥 有 Facebook 真实广告 → 直接展示
+        ads = fb_ads
+        is_real_ads = True
+        source = "facebook_ad_library"
+    elif has_meta:
+        # Meta API 有数据
+        ads = meta_ads
+        is_real_ads = True
+        source = "meta_api"
     else:
+        # 降级：GP 视频 + 截图
         ad_cards = []
-
-        # 1️⃣ 如果有 Google Play 视频，放第一个（最显眼）
         if gp_video_url:
-            # 解析 YouTube URL，提取 video_id
-            yt_video_id = ""
+            yt_id = ""
             if "youtube.com/embed/" in gp_video_url:
-                yt_video_id = gp_video_url.split("youtube.com/embed/")[1].split("?")[0]
+                yt_id = gp_video_url.split("youtube.com/embed/")[1].split("?")[0]
             elif "youtube.com/watch?v=" in gp_video_url:
-                yt_video_id = gp_video_url.split("watch?v=")[1].split("&")[0]
-            elif "youtu.be/" in gp_video_url:
-                yt_video_id = gp_video_url.split("youtu.be/")[1].split("?")[0]
-
+                yt_id = gp_video_url.split("watch?v=")[1].split("&")[0]
             ad_cards.append({
                 "ad_id": f"gp_video_{app_id}",
                 "advertiser": developer or app_name,
-                "title": f"🎬 {app_name} 宣传视频",
+                "title": f"{app_name} 宣传视频",
                 "title_en": f"{app_name} Promo Video",
-                "body": f"Google Play 官方宣传视频",
-                "body_en": f"Official Google Play promo video",
+                "body": "Google Play 官方宣传视频",
+                "body_en": "Official Google Play promo video",
                 "thumbnail_url": gp_video_thumb or icon_url,
                 "video_url": gp_video_url,
-                "video_id": yt_video_id,
+                "video_id": yt_id,
                 "snapshot_url": gp_video_thumb or icon_url,
                 "creative_type": "VIDEO",
                 "creative_type_zh": "宣传视频",
-                "platforms": [],
-                "platforms_zh": ["Google Play · YouTube"],
-                "first_seen": "",
-                "last_seen": "",
-                "is_preview": False,
-                "is_video": True,
-                "source": "google_play",
+                "platforms_zh": ["Google Play", "YouTube"],
+                "first_seen": "", "last_seen": "",
+                "is_preview": False, "is_video": True, "source": "google_play",
             })
-
-        # 2️⃣ Google Play 截图
-        for i, url in enumerate(gp_screenshots[:8]):
-            if url:
+        for i, url in enumerate((gp_screenshots + [u for u in screenshots if u])[:12]):
+            if url and len(ad_cards) < 12:
                 ad_cards.append({
-                    "ad_id": f"gp_screenshot_{app_id}_{i}",
+                    "ad_id": f"ss_{app_id}_{i}",
                     "advertiser": developer or app_name,
-                    "title": f"{app_name} - GP 截图 #{i+1}",
-                    "title_en": f"{app_name} - GP Screenshot #{i+1}",
-                    "body": f"{app_name} Google Play 截图",
-                    "body_en": f"{app_name} Google Play Screenshot",
+                    "title": f"{app_name} #{i+1}",
+                    "title_en": f"{app_name} #{i+1}",
                     "thumbnail_url": url,
                     "video_url": None,
                     "snapshot_url": url,
                     "creative_type": "IMAGE",
-                    "creative_type_zh": "GP 截图",
-                    "platforms": [],
-                    "platforms_zh": ["Google Play"],
-                    "first_seen": "",
-                    "last_seen": "",
-                    "is_preview": True,
-                    "source": "google_play",
+                    "creative_type_zh": "截图",
+                    "platforms_zh": ["App Store" if i < len(screenshots) else "Google Play"],
+                    "first_seen": "", "last_seen": "",
+                    "is_preview": True, "source": "store_screenshot",
                 })
-
-        # 3️⃣ App Store 截图（排除 GP 已有的）
-        gp_count = len(gp_screenshots)
-        remaining = 8 - len(ad_cards)
-        if remaining > 0:
-            itunes_screenshots = [u for u in screenshots if u][:remaining]
-            for i, url in enumerate(itunes_screenshots):
-                if url not in [c["snapshot_url"] for c in ad_cards]:
-                    ad_cards.append({
-                        "ad_id": f"as_screenshot_{app_id}_{i}",
-                        "advertiser": developer or app_name,
-                        "title": f"{app_name} - AS 截图 #{i+1}",
-                        "title_en": f"{app_name} - App Store Screenshot #{i+1}",
-                        "body": f"{app_name} App Store 截图",
-                        "body_en": f"{app_name} App Store Screenshot",
-                        "thumbnail_url": url,
-                        "video_url": None,
-                        "snapshot_url": url,
-                        "creative_type": "IMAGE",
-                        "creative_type_zh": "AS 截图",
-                        "platforms": [],
-                        "platforms_zh": ["App Store"],
-                        "first_seen": "",
-                        "last_seen": "",
-                        "is_preview": True,
-                        "source": "app_store",
-                    })
-
-        # 4️⃣ 如果什么都没有，兜底
-        if not ad_cards:
-            if icon_url:
-                ad_cards.append({
-                    "ad_id": f"icon_{app_id}",
-                    "advertiser": developer or app_name,
-                    "title": f"{app_name}",
-                    "title_en": app_name,
-                    "body": f"{app_name} - 暂无广告素材",
-                    "body_en": f"{app_name} - No ad creatives available",
-                    "thumbnail_url": icon_url,
-                    "video_url": None,
-                    "snapshot_url": icon_url,
-                    "creative_type": "IMAGE",
-                    "creative_type_zh": "App 图标",
-                    "platforms": [],
-                    "platforms_zh": ["App Store"],
-                    "first_seen": "",
-                    "last_seen": "",
-                    "is_preview": True,
-                    "source": "fallback",
-                })
-
+        if not ad_cards and icon_url:
+            ad_cards.append({
+                "ad_id": f"icon_{app_id}",
+                "advertiser": developer or app_name,
+                "title": app_name, "title_en": app_name,
+                "thumbnail_url": icon_url, "video_url": None,
+                "snapshot_url": icon_url, "creative_type": "IMAGE",
+                "creative_type_zh": "App 图标", "platforms_zh": ["App Store"],
+                "first_seen": "", "last_seen": "",
+                "is_preview": True, "source": "fallback",
+            })
         ads = ad_cards
-        is_real_ads = bool(gp_video_url)  # 有视频就算有"真广告"
+        is_real_ads = bool(gp_video_url)
+        source = "google_play" if gp_video_url else "screenshots"
 
     return {
         "app_id": app_id,
@@ -769,9 +718,8 @@ async def get_app_ads(app_id: str, country: str = Query("US")):
         "country": country,
         "total": len(ads),
         "is_real_ads": is_real_ads,
+        "source": source,
         "api_configured": bool(meta_token),
-        "gp_data_source": gp_data_source,
-        "has_gp_video": bool(gp_video_url),
         "ads": ads,
     }
 

@@ -7,3 +7,6 @@ lxml==5.3.0
 pytrends==4.9.2
 feedparser==6.0.11
 python-dateutil==2.9.0
+google-play-scraper==1.2.7
+facebook-ad-library-scraper==0.1.1
+selenium>=4.15.0
