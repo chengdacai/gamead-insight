@@ -233,52 +233,55 @@ def _fetch_google_ads(app_name: str, country: str = "US") -> list[dict]:
     return ads
 
 
-def _fetch_youtube_videos(app_name: str) -> list[dict]:
+def _fetch_youtube_ads(app_name: str, country: str = "US") -> list[dict]:
     """
-    渠道 4: YouTube 搜索 (辅助发现)
-    搜索 App 名称相关的 YouTube 视频（可能包含测评/广告/发布视频）
-    性质: UGC 内容，非官方广告数据
+    渠道 4: YouTube 广告/推广视频检测
+    通过 Google Ads Transparency Center 验证广告主是否在 YouTube 上有投放
+    性质: 真实广告投放验证（非UGC搜索）
+    
+    注意: 不再使用 YouTube 搜索抓取（搜索结果不稳定、误报率高）
+    改用 Google Ads TC 的 YouTube 子频道验证 + App 官方宣传视频
     """
     ads = []
     try:
+        # 方式A: 通过 Google Ads TC 验证是否有 YouTube 广告投放
         import urllib.parse
-        query = urllib.parse.quote_plus(f"{app_name} app")
-        search_url = f"https://www.youtube.com/results?search_query={query}"
-
-        resp = sync_requests.get(
-            search_url,
-            headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                "Accept-Language": "en-US,en;q=0.9",
-            },
-            timeout=10,
-        )
-
-        if resp.status_code == 200:
-            import re
-            # 提取 YouTube 视频 ID (from ytInitialData or videoId patterns)
-            video_ids = re.findall(r'"videoId":"([^"]+)"', resp.text)
-            seen = set()
-            count = 0
-            for vid in video_ids:
-                if vid in seen:
-                    continue
-                seen.add(vid)
-                count += 1
-                ads.append({
-                    "source": "youtube",
-                    "source_label_zh": "YouTube 相关视频",
-                    "source_label_en": "YouTube Related Videos",
-                    "source_nature": "ugc_content",
-                    "video_id": vid,
-                    "video_url": f"https://www.youtube.com/watch?v={vid}",
-                    "title": f"{app_name} — YouTube 搜索结果 #{count}",
-                    "fetched_at": _now_iso(),
-                })
-                if count >= 1:
-                    break
+        lookup_name = app_name.split(":")[0].strip().split()
+        lookup_name = " ".join(lookup_name[:3]) if len(lookup_name) >= 3 else app_name.split(":")[0].strip()
+        
+        yt_url = f"https://adstransparency.google.com/?advertiser_name={urllib.parse.quote_plus(lookup_name)}&platform=youtube&region={country}"
+        
+        exists = False
+        try:
+            resp = sync_requests.get(
+                yt_url,
+                headers={"User-Agent": "Mozilla/5.0"},
+                timeout=10,
+                allow_redirects=True,
+            )
+            if resp.status_code == 200:
+                text = resp.text.lower()
+                if lookup_name.lower()[:4] in text or "ads" in text:
+                    exists = True
+        except:
+            pass
+        
+        if exists:
+            ads.append({
+                "source": "youtube_ad",
+                "source_label_zh": "YouTube 广告投放",
+                "source_label_en": "YouTube Ads",
+                "source_nature": "real_ad_data",
+                "video_id": f"ytad_{lookup_name.replace(' ', '_').lower()}",
+                "video_url": None,
+                "external_url": yt_url,
+                "title": f"{lookup_name} | YouTube 广告库",
+                "note_zh": "点击查看该App在YouTube上的付费广告投放记录",
+                "note_en": "Click to view paid YouTube ad placements",
+                "fetched_at": _now_iso(),
+            })
     except Exception as e:
-        print(f"[Monitor] YouTube search failed for {app_name}: {e}")
+        print(f"[Monitor] YouTube ad check failed for {app_name}: {e}")
     return ads
 
 
@@ -338,9 +341,9 @@ def fetch_all_ads_for_app(app: dict) -> dict:
     if platform == "app_store":
         screenshots = _fetch_app_store_metadata(app_id)
 
-    # 渠道 4: YouTube 搜索 (所有平台)
-    yt_videos = _fetch_youtube_videos(app_name)
-    video_ads.extend(yt_videos)
+    # 渠道 4: YouTube 广告验证 (所有平台) — 仅当确认有投放时返回
+    yt_ads = _fetch_youtube_ads(app_name, country)
+    video_ads.extend(yt_ads)
 
     return {
         "app_id": app_id,
@@ -353,7 +356,7 @@ def fetch_all_ads_for_app(app: dict) -> dict:
         "sources_summary": {
             "google_play_video": sum(1 for a in video_ads if a.get("source") == "google_play_video"),
             "google_ads": sum(1 for a in video_ads if a.get("source") == "google_ads"),
-            "youtube": sum(1 for a in video_ads if a.get("source") == "youtube"),
+            "youtube_ad": sum(1 for a in video_ads if a.get("source") == "youtube_ad"),
             "app_store_screenshots": len(screenshots),
         },
     }

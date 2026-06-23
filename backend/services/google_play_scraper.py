@@ -62,12 +62,20 @@ def fetch_top_charts(
             results = search(
                 kw,
                 country=country.lower(),
-                n_hits=limit * 2,  # 多取一些以便去重
+                n_hits=limit * 3,  # 多取一些以便过滤
             )
             for r in results:
                 app_id = r.get("appId", "")
                 if not app_id or app_id in seen_ids:
                     continue
+                
+                # 🔥 根据 chart_type 过滤免费/付费
+                price_val = r.get("price", 0) or 0
+                if chart_type == "free" and price_val > 0:
+                    continue  # 跳过付费应用
+                if chart_type == "paid" and price_val == 0:
+                    continue  # 跳过免费应用
+                
                 if len(apps) >= limit:
                     break
                 seen_ids.add(app_id)
@@ -85,7 +93,7 @@ def fetch_top_charts(
                     "developer": r.get("developer", ""),
                     "category": cat_info["zh"],
                     "category_en": cat_info["en"],
-                    "price": 0.0 if chart_type == "free" else (r.get("price", 0) or 0),
+                    "price": price_val,
                     "rating": float(score) if score else 0.0,
                     "rating_count": r.get("reviews", 0),
                     "installs": installs,

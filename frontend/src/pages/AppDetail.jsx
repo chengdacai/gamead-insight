@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
-const API_BASE = window.location.hostname === 'localhost' ? '/api' : '/api'
+const API_BASE = '/api'
 
 const ALERT_COLORS = { critical: '#ff5c72', warning: '#ff9f43', info: '#4f8cff', none: '#556076' }
 
@@ -52,13 +52,13 @@ export default function AppDetail() {
       <div className="empty-icon" style={{fontSize:48}}>⚠️</div>
       <div className="empty-text-zh" style={{marginTop:16}}>无法加载 App 详情</div>
       <div className="empty-text-en">{error || '未知错误'} · ID: {appId}</div>
-      <button className="btn small" onClick={() => navigate('/appstore')} style={{marginTop:20}}>
+      <button className="btn small" onClick={() => navigate('/ranking')} style={{marginTop:20}}>
         ← 返回榜单 / Back to Rankings
       </button>
     </div>
   )
 
-  const { app, creative_ideas } = data
+  const { app } = data
 
   // Previous rank
   let rankChange = null
@@ -71,7 +71,7 @@ export default function AppDetail() {
   return (
     <div>
       {/* Back button */}
-      <button className="btn small" onClick={() => navigate('/appstore')} style={{marginBottom:20}}>
+      <button className="btn small" onClick={() => navigate('/ranking')} style={{marginBottom:20}}>
         ← 返回榜单 / Back to Rankings
       </button>
 
@@ -88,11 +88,11 @@ export default function AppDetail() {
           <div className="detail-dev">{app.developer} · v{app.version} · {app.category || 'Utilities'}</div>
           <div className="detail-stats">
             <div className="detail-stat">
-              <div className="detail-stat-val" style={{color: app.rating >= 4.5 ? 'var(--green)' : app.rating >= 4.0 ? 'var(--accent)' : 'var(--orange)'}}>{app.rating.toFixed(1)}</div>
+              <div className="detail-stat-val" style={{color: (app.rating || 0) >= 4.5 ? 'var(--green)' : (app.rating || 0) >= 4.0 ? 'var(--accent)' : 'var(--orange)'}}>{(app.rating ?? 0).toFixed(1)}</div>
               <div className="detail-stat-label">评分 / Rating</div>
             </div>
             <div className="detail-stat">
-              <div className="detail-stat-val">{(app.rating_count / 1000).toFixed(0)}k</div>
+              <div className="detail-stat-val">{((app.rating_count ?? 0) / 1000).toFixed(0)}k</div>
               <div className="detail-stat-label">评价数 / Reviews</div>
             </div>
             <div className="detail-stat">
@@ -208,14 +208,8 @@ export default function AppDetail() {
                     key={ad.ad_id || i}
                     className="ad-video-card"
                     onClick={() => {
-                      // 🔗 外部链接（Google Ads透明度中心等）— 新标签页打开
-                      if (ad.external_url && !ad.is_video && !ad.video_id && !ad.snapshot_url) {
-                        window.open(ad.external_url, '_blank', 'noopener,noreferrer')
-                        return
-                      }
-                      if (ad.is_video || ad.video_id || ad.video_url) setActiveVideo(ad)
-                      else if (ad.snapshot_url) setActiveVideo(ad)
-                      else if (ad.external_url) window.open(ad.external_url, '_blank', 'noopener,noreferrer')
+                      // 所有广告都在模态框中播放/预览
+                      setActiveVideo(ad)
                     }}
                     style={{
                       cursor: (ad.is_video || ad.snapshot_url || ad.external_url) ? 'pointer' : 'default',
@@ -364,6 +358,16 @@ export default function AppDetail() {
                     title={activeVideo.title_zh || activeVideo.title}
                   />
                 </div>
+              ) : activeVideo.external_url && !activeVideo.video_id ? (
+                /* 外部网页内嵌（Google Ads等） */
+                <div style={{position:'relative', paddingBottom:'75%', height:0, background:'#fff'}}>
+                  <iframe
+                    style={{position:'absolute', top:0, left:0, width:'100%', height:'100%', border:'none'}}
+                    src={activeVideo.external_url}
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                    title={activeVideo.title_zh || "Google Ads 详情"}
+                  />
+                </div>
               ) : activeVideo.video_url && !activeVideo.video_id ? (
                 /* 直接视频URL播放 */
                 <video
@@ -415,43 +419,6 @@ export default function AppDetail() {
                 {activeVideo.first_seen && ` · ${activeVideo.first_seen?.slice(0, 10)}`}
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Creative Ideas */}
-      {creative_ideas?.length > 0 && (
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <div className="card-title-zh">广告创意思路 / Creative Ideas</div>
-              <div className="card-title-en">AI-generated for this app</div>
-            </div>
-          </div>
-          <div className="creative-grid" style={{gridTemplateColumns:'1fr'}}>
-            {creative_ideas.map((idea, i) => (
-              <div key={i} className="creative-card">
-                <div className="creative-header">
-                  <div>
-                    <div className="creative-name-zh">{idea.name_zh}</div>
-                    <div className="creative-name-en">{idea.name_en}</div>
-                  </div>
-                  <div className="creative-score">{Math.round(idea.relevance_score * 100)}%</div>
-                </div>
-                <div className="creative-desc" style={{display:'flex',flexDirection:'column',gap:8}}>
-                  <div style={{color:'var(--accent)',fontSize:13,fontWeight:600}}>{idea.specific_idea_zh}</div>
-                  <div style={{fontSize:11,color:'var(--text-muted)',fontFamily:'var(--font-en)'}}>{idea.specific_idea_en}</div>
-                </div>
-                <div className="creative-hooks">
-                  {idea.hooks_zh.map((h, j) => (
-                    <span key={j} className="hook-chip">{h}</span>
-                  ))}
-                  {idea.hooks_en.slice(0, 1).map((h, j) => (
-                    <span key={`en${j}`} className="hook-chip" style={{fontSize:10,opacity:0.7}}>{h}</span>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       )}

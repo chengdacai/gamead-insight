@@ -4,7 +4,7 @@ import StoreRanking from './pages/StoreRanking'
 import AppDetail from './pages/AppDetail'
 import CompetitorWatch from './pages/CompetitorWatch'
 
-const API_BASE = window.location.hostname === 'localhost' ? '/api' : '/api'
+const API_BASE = '/api'
 
 // Sidebar nav items — 只保留核心功能
 const NAV_ITEMS = [
@@ -17,10 +17,12 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
     fetch(`${API_BASE}/status`)
-      .then(r => r.json())
-      .then(d => setStatus(d))
-      .catch(() => {})
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
+      .then(d => { if (!cancelled) setStatus(d) })
+      .catch(() => { if (!cancelled) setStatus({ total_topics: 0, ai_mode: '离线' }) })
+    return () => { cancelled = true }
   }, [])
 
   return (
@@ -60,11 +62,6 @@ export default function App() {
               <span>{status.total_topics} 条数据 / topics</span>
             </div>
           )}
-          {/* 企业微信入口 */}
-          <NavLink to="/monitor" className="wecom-sidebar-link" title="企业微信推送设置">
-            <span>💬</span>
-            {!sidebarCollapsed && <span className="wecom-link-text">企业微信</span>}
-          </NavLink>
           <button className="collapse-btn" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
             {sidebarCollapsed ? '▸' : '◂'}
           </button>
@@ -80,14 +77,6 @@ export default function App() {
             </h2>
           </div>
           <div className="top-bar-right">
-            <a href="https://work.weixin.qq.com/" target="_blank" rel="noopener" className="topbar-wecom-link" title="企业微信管理后台">
-              💬 企微
-            </a>
-            <div className="status-indicator">
-              <span className="status-dot live"></span>
-              <span className="status-text">实时 / Live</span>
-            </div>
-            <span className="status-badge free">免费方案 / Free</span>
           </div>
         </header>
         <div className="content-area">

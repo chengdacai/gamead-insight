@@ -16,6 +16,13 @@
   --text-muted: #556076;
   --accent: #4f8cff;
   --accent-glow: rgba(79, 140, 255, 0.25);
+
+  /* Aliases for CompetitorWatch compatibility */
+  --card-bg: var(--bg-card);
+  --border-color: var(--border-glass);
+  --accent-color: var(--accent);
+  --card-bg-hover: rgba(255, 255, 255, 0.04);
+  --text-tertiary: var(--text-muted);
   --green: #00d68f;
   --green-glow: rgba(0, 214, 143, 0.2);
   --orange: #ff9f43;

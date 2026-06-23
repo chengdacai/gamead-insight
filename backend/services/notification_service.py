@@ -234,7 +234,10 @@ def push_notification(title: str, body: str, channels: list[str] = None) -> dict
 
     if channels is None:
         channels = []
-        # 仅使用企业微信应用消息
+        # 优先使用消息推送 Webhook（不受 IP 限制，最可靠）
+        if notify["wecom"]["enabled"] and notify["wecom"]["webhooks"]:
+            channels.append("wecom_webhook")
+        # 企业微信应用消息作为备用（需 IP 白名单）
         if notify["wecom_app"]["enabled"] and notify["wecom_app"]["configured"]:
             channels.append("wecom_app")
 

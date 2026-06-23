@@ -78,15 +78,18 @@ function AppCard({ app, index, onClick, showGrowth, onAddMonitor }) {
   const name = app.name || app.id || "未知应用";
   const dev = app.developer || app.store || "";
   const icon = app.icon_url || app.icon || "";
-  const rating = app.rating;
+  const rating = app.rating ?? 0;
   const isTop3 = rank <= 3;
   const [addingWatch, setAddingWatch] = useState(false);
   const [watched, setWatched] = useState(false);
+  const [watchError, setWatchError] = useState('');
+  const [iconFailed, setIconFailed] = useState(false);
 
   const handleAddWatch = async (e) => {
     e.stopPropagation();
     if (addingWatch || watched) return;
     setAddingWatch(true);
+    setWatchError('');
     try {
       const appId = app.app_id || app.id || '';
       const platform = app.store === 'google_play' ? 'google_play' : 'app_store';
@@ -100,8 +103,11 @@ function AppCard({ app, index, onClick, showGrowth, onAddMonitor }) {
       });
       if (r.data.status === 'added' || r.data.status === 'already_watching') {
         setWatched(true);
+      } else {
+        setWatchError(r.data.status || '添加失败');
       }
     } catch (e) {
+      setWatchError(e.response?.data?.detail || '网络错误');
       console.error('Add watch failed:', e);
     } finally {
       setAddingWatch(false);
@@ -115,12 +121,13 @@ function AppCard({ app, index, onClick, showGrowth, onAddMonitor }) {
 
       {/* 大图标 */}
       <div className="app-icon-wrap">
-        {icon ? (
-          <img src={icon} alt="" className="app-icon-large"
-            onError={(e) => { e.target.style.display = "none"; e.target.nextSibling?.style?.removeProperty('display'); }}
+        {icon && !iconFailed ? (
+          <img src={icon} alt={name} className="app-icon-large"
+            onError={() => setIconFailed(true)}
           />
-        ) : null}
-        {!icon && <div className="app-icon-placeholder">{name.charAt(0).toUpperCase()}</div>}
+        ) : (
+          <div className="app-icon-placeholder">{name.charAt(0).toUpperCase()}</div>
+        )}
       </div>
 
       {/* 名称 + 开发商 + 评分 */}
@@ -129,7 +136,7 @@ function AppCard({ app, index, onClick, showGrowth, onAddMonitor }) {
         <div className="sr-dev">{dev}</div>
         {rating > 0 && (
           <div className="app-rating">
-            <span className="star">&#9733;</span> {rating.toFixed(1)}
+            <span className="star">&#9733;</span> {(rating).toFixed(1)}
           </div>
         )}
         {/* 增长分析：排名变动指示器 */}
@@ -151,12 +158,12 @@ function AppCard({ app, index, onClick, showGrowth, onAddMonitor }) {
 
       {/* 加入监控按钮 */}
       <button
-        className={`sr-watch-btn ${watched ? 'watched' : ''}`}
+        className={`sr-watch-btn ${watched ? 'watched' : ''} ${watchError ? 'watch-error' : ''}`}
         onClick={handleAddWatch}
         disabled={addingWatch || watched}
-        title={watched ? '已在监控中' : '加入竞品监控'}
+        title={watchError || (watched ? '已在监控中' : '加入竞品监控')}
       >
-        {watched ? '✓ 监控中' : addingWatch ? '...' : '+ 监控'}
+        {watchError ? '⚠️ 失败' : watched ? '✓ 监控中' : addingWatch ? '...' : '+ 监控'}
       </button>
 
       {/* 右侧箭头 */}

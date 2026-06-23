@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const API_BASE = '/api'
 
@@ -8,12 +8,16 @@ export default function CompetitorWatch() {
   const [error, setError] = useState(null)
   const [monitorStatus, setMonitorStatus] = useState({})
   const [showSettings, setShowSettings] = useState(false)
-  const [settings, setSettings] = useState({ wecom_corpid: '', wecom_agentid: 0, wecom_secret: '', check_interval_hours: 1 })
+  const [settings, setSettings] = useState({ wecom_corpid: '', wecom_agentid: 0, wecom_secret: '', wecom_webhooks: [], check_interval_hours: 1 })
   const [savingSettings, setSavingSettings] = useState(false)
   const [checkingAll, setCheckingAll] = useState(false)
   const [checkResult, setCheckResult] = useState(null)
   const [testPushResult, setTestPushResult] = useState(null)
   const [addedMsg, setAddedMsg] = useState(null)  // 添加后的即时反馈
+  const [expandedAlerts, setExpandedAlerts] = useState({})  // 展开的App新动态
+  const [detailModal, setDetailModal] = useState(null)  // 详情弹窗（替代alert）
+  const [actionError, setActionError] = useState(null)  // 操作错误反馈
+  const addedMsgTimer = useRef(null)
 
   // 搜索
   const [searchQuery, setSearchQuery] = useState('')
@@ -34,6 +38,7 @@ export default function CompetitorWatch() {
         running: data.monitor_running,
         interval: data.check_interval_hours,
         wecom_app: data.wecom_app_configured,
+        wecom: data.wecom_configured,
       })
     } catch (e) {
       setError(e.message)
@@ -43,6 +48,11 @@ export default function CompetitorWatch() {
   }
 
   useEffect(() => { loadWatchlist() }, [])
+
+  // 组件卸载时清理定时器
+  useEffect(() => {
+    return () => { if (addedMsgTimer.current) clearTimeout(addedMsgTimer.current) }
+  }, [])
 
   useEffect(() => {
     fetch(`${API_BASE}/monitor/settings`)
@@ -66,6 +76,8 @@ export default function CompetitorWatch() {
       setSearchResults(data.results || [])
     } catch (e) {
       console.error('Search failed:', e)
+      setActionError(`搜索失败: ${e.message}`)
+      setTimeout(() => setActionError(null), 5000)
     }
     setSearching(false)
   }
@@ -99,12 +111,15 @@ export default function CompetitorWatch() {
             sources: data.app?.ad_stats || {},
             isFirst: true,
           })
-          setTimeout(() => setAddedMsg(null), 8000)
+          if (addedMsgTimer.current) clearTimeout(addedMsgTimer.current)
+          addedMsgTimer.current = setTimeout(() => setAddedMsg(null), 8000)
         }
         setSearchResults(prev => prev.filter(s => (s.app_id || s.id) !== (app.app_id || app.id)))
       }
     } catch (e) {
       console.error('Add watch failed:', e)
+      setActionError(`添加失败: ${e.message}`)
+      setTimeout(() => setActionError(null), 5000)
     }
   }
 
@@ -112,10 +127,13 @@ export default function CompetitorWatch() {
 
   const handleRemoveWatch = async (appId, platform) => {
     try {
-      await fetch(`${API_BASE}/monitor/watch/${appId}?platform=${platform}`, { method: 'DELETE' })
+      const r = await fetch(`${API_BASE}/monitor/watch/${appId}?platform=${platform}`, { method: 'DELETE' })
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
       loadWatchlist()
     } catch (e) {
       console.error('Remove failed:', e)
+      setActionError(`移除失败: ${e.message}`)
+      setTimeout(() => setActionError(null), 5000)
     }
   }
 
@@ -146,6 +164,8 @@ export default function CompetitorWatch() {
       loadWatchlist()
     } catch (e) {
       console.error('Save settings failed:', e)
+      setActionError(`保存失败: ${e.message}`)
+      setTimeout(() => setActionError(null), 5000)
     } finally {
       setSavingSettings(false)
     }
@@ -182,10 +202,10 @@ export default function CompetitorWatch() {
           <span className="status-label-zh">个竞品</span>
         </div>
         <div className="status-item">
-          <span>{monitorStatus.wecom_app ? '✅' : '⚠️'}</span>
-          <span className="status-label-zh">企业微信推送</span>
+          <span>{monitorStatus.wecom ? '✅' : '⚠️'}</span>
+          <span className="status-label-zh">消息推送</span>
           <span className="status-label-en">
-            {monitorStatus.wecom_app ? 'WeCom App ✓' : '未配置'}
+            {monitorStatus.wecom ? 'Webhook ✓' : '未配置'}
           </span>
         </div>
         <div className="status-item">
@@ -218,8 +238,8 @@ export default function CompetitorWatch() {
             搜索结果 / Search Results ({searchResults.length})
           </div>
           <div className="watch-search-grid">
-            {searchResults.map((app, i) => (
-              <div className="watch-search-card" key={i}>
+            {searchResults.map((app) => (
+              <div className="watch-search-card" key={app.app_id || app.id || app.name}>
                 <div className="watch-search-card-icon">
                   {(app.icon_url || app.icon) ? (
                     <img src={app.icon_url || app.icon} alt="" onError={e => { e.target.style.display = 'none' }} />
@@ -250,9 +270,17 @@ export default function CompetitorWatch() {
           <span className="added-text"><strong>{addedMsg.name}</strong> 已加入监控</span>
           <span className="added-detail">
             {addedMsg.isFirst
-              ? `基线已建立 (GP视频 ${addedMsg.sources?.gp_video || 0} · GoogleAds ${addedMsg.sources?.google_ads || 0} · YouTube ${addedMsg.sources?.youtube || 0})`
+              ? `基线已建立 (GP视频 ${addedMsg.sources?.gp_video || 0} · GoogleAds ${addedMsg.sources?.google_ads || 0} · YouTube广告 ${addedMsg.sources?.youtube_ad || 0})`
               : `当前 ${addedMsg.total_ads} 条广告素材`}
           </span>
+        </div>
+      )}
+
+      {/* 操作错误反馈 */}
+      {actionError && (
+        <div style={{padding:'10px 16px',background:'rgba(255,92,114,0.1)',border:'1px solid rgba(255,92,114,0.2)',borderRadius:8,marginBottom:12,fontSize:13,color:'var(--red)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <span>❌ {actionError}</span>
+          <button onClick={() => setActionError(null)} style={{background:'none',border:'none',color:'var(--red)',cursor:'pointer',fontSize:16}}>✕</button>
         </div>
       )}
 
@@ -262,7 +290,7 @@ export default function CompetitorWatch() {
           {checkingAll ? '检查中...' : '🔄 立即检查所有竞品'}
         </button>
         <span className="watch-source-hint">
-          📡 数据源：Google Play 视频 · Google Ads 透明度中心 · YouTube · App Store 截图
+          📡 数据源：Google Play 视频 · Google Ads 透明度中心 · YouTube广告 · App Store 截图
         </span>
       </div>
 
@@ -286,10 +314,10 @@ export default function CompetitorWatch() {
               <span className="source-name">App Store 截图/版本</span>
               <span className="source-desc">截图变更常与广告投放同步</span>
             </div>
-            <div className="source-row video-content">
-              <span className="source-badge">🎬 视频内容</span>
-              <span className="source-name">YouTube 搜索</span>
-              <span className="source-desc">搜索竞品相关视频，可能包含测评/推广</span>
+            <div className="source-row real-ad">
+              <span className="source-badge">📢 真实广告</span>
+              <span className="source-name">YouTube 广告验证</span>
+              <span className="source-desc">通过Google Ads透明度中心验证YouTube投放</span>
             </div>
           </div>
         </details>
@@ -321,8 +349,8 @@ export default function CompetitorWatch() {
             <h3 className="section-title">关注列表 / Watchlist ({watchlist.length})</h3>
           </div>
           <div className="watch-grid">
-            {watchlist.map((app, i) => (
-              <div className={`watch-card ${app.total_alerts > 0 ? 'has-alert' : ''}`} key={i}>
+            {watchlist.map((app) => (
+              <div className={`watch-card ${app.total_alerts > 0 ? 'has-alert' : ''}`} key={`${app.app_id}_${app.platform}`}>
                 <div className="watch-card-icon">
                   {app.icon_url ? (
                     <img src={app.icon_url} alt={app.name} onError={e => { e.target.style.display = 'none' }} />
@@ -337,19 +365,62 @@ export default function CompetitorWatch() {
                     {app.platform === 'google_play' ? '📱 Google Play' : '🍎 App Store'}
                   </div>
                   <div className="watch-card-stats">
-                    <span title="GP视频/GoogleAds/YouTube/截图">📊 {app.last_ad_count || 0} 条素材</span>
+                    <span title="GP视频/GoogleAds/YouTube广告/截图">📊 {app.last_ad_count || 0} 条素材</span>
                     <span>📅 {app.last_checked ? new Date(app.last_checked).toLocaleDateString('zh-CN') : '未检查'}</span>
                   </div>
-                  {app.ad_stats && (app.ad_stats.gp_video > 0 || app.ad_stats.google_ads > 0 || app.ad_stats.youtube > 0) && (
+                  {app.ad_stats && (app.ad_stats.gp_video > 0 || app.ad_stats.google_ads > 0 || app.ad_stats.youtube_ad > 0) && (
                     <div className="watch-card-ad-breakdown">
-                      {app.ad_stats.gp_video > 0 && <span title="GP商店视频">▶{app.ad_stats.gp_video}</span>}
-                      {app.ad_stats.google_ads > 0 && <span title="Google Ads">📢{app.ad_stats.google_ads}</span>}
-                      {app.ad_stats.youtube > 0 && <span title="YouTube">🎬{app.ad_stats.youtube}</span>}
-                      {app.ad_stats.app_store_ss > 0 && <span title="App Store截图">🖼{app.ad_stats.app_store_ss}</span>}
+                      {app.ad_stats.gp_video > 0 && <span title="Google Play 商店宣传视频 / GP Store Video">▶{app.ad_stats.gp_video}</span>}
+                      {app.ad_stats.google_ads > 0 && <span title="Google Ads 真实广告 / Google Ads Real Ads">📢{app.ad_stats.google_ads}</span>}
+                      {app.ad_stats.youtube_ad > 0 && <span title="YouTube 广告投放验证 / YouTube Ad Verification">🎬{app.ad_stats.youtube_ad}</span>}
+                      {app.ad_stats.app_store_ss > 0 && <span title="App Store 商店截图 / App Store Screenshots">🖼{app.ad_stats.app_store_ss}</span>}
                     </div>
                   )}
                   {app.total_alerts > 0 && (
-                    <div className="watch-card-alert-badge">🔔 有新动态</div>
+                    <div
+                      className="watch-card-alert-badge"
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        const key = `${app.app_id}_${app.platform}`
+                        if (expandedAlerts[key]) {
+                          setExpandedAlerts(prev => { const n = {...prev}; delete n[key]; return n })
+                          return
+                        }
+                        // 获取警报历史
+                        try {
+                          const r = await fetch(`${API_BASE}/monitor/history/${app.app_id}?platform=${app.platform}`)
+                          const d = await r.json()
+                          setExpandedAlerts(prev => ({ ...prev, [key]: d }))
+                        } catch (e) {
+                          console.error('Fetch alerts failed:', e)
+                        }
+                      }}
+                      style={{cursor:'pointer'}}
+                    >
+                      🔔 {app.total_alerts} 条新动态 {expandedAlerts[`${app.app_id}_${app.platform}`] ? '▲' : '▼'}
+                    </div>
+                  )}
+                  {/* 展开的新动态详情 */}
+                  {expandedAlerts[`${app.app_id}_${app.platform}`] && (
+                    <div className="watch-alert-detail" style={{marginTop:8, padding:12, background:'rgba(255,255,255,0.03)', borderRadius:8, fontSize:12, maxHeight:200, overflow:'auto'}}>
+                      {(Array.isArray(expandedAlerts[`${app.app_id}_${app.platform}`].alerts) 
+                        ? expandedAlerts[`${app.app_id}_${app.platform}`].alerts 
+                        : [expandedAlerts[`${app.app_id}_${app.platform}`]]
+                      ).map((alert, ai) => (
+                        <div key={ai} style={{marginBottom:6, padding:'6px 8px', background:'rgba(255,255,255,0.04)', borderRadius:4, borderLeft:'3px solid var(--accent)'}}>
+                          <div style={{fontWeight:600, color:'var(--accent)', marginBottom:2}}>
+                            {alert.type_zh || alert.type || '变更'}
+                            <span style={{float:'right', fontSize:10, color:'var(--text-muted)'}}>
+                              {alert.detected_at ? new Date(alert.detected_at).toLocaleString('zh-CN') : ''}
+                            </span>
+                          </div>
+                          {alert.detail_zh && <div style={{color:'var(--text-secondary)'}}>{alert.detail_zh}</div>}
+                          {alert.detail_en && <div style={{fontSize:10, color:'var(--text-muted)'}}>{alert.detail_en}</div>}
+                          {alert.new_ads_count > 0 && <div style={{color:'var(--green)', fontSize:11, marginTop:2}}>🆕 +{alert.new_ads_count} 新广告</div>}
+                          {alert.new_ss_count > 0 && <div style={{color:'var(--green)', fontSize:11, marginTop:2}}>🖼 +{alert.new_ss_count} 新截图</div>}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
                 <button
@@ -376,19 +447,32 @@ export default function CompetitorWatch() {
               <div className="check-summary">
                 检查 {checkResult.total_checked} App，发现 {checkResult.new_ads_found} 个有变更
                 <div className="check-sources">
-                  📡 来源: GP视频 · Google Ads · YouTube · App Store
+                  📡 来源: GP视频 · Google Ads · YouTube广告 · App Store
                 </div>
               </div>
               <div className="check-details">
-                {checkResult.results?.map((r, i) => (
-                  <div key={i} className={`check-item ${r.detections?.has_new ? 'has-new' : ''}`}>
+                {checkResult.results?.map((r, i) => {
+                  const hasNew = r.detections?.has_new
+                  return (
+                  <div key={r.app_id || i} className={`check-item ${hasNew ? 'has-new' : ''}`}
+                    onClick={hasNew ? () => {
+                      setDetailModal({
+                        title: r.app_name,
+                        icon: r.icon_url,
+                        content: r.detections,
+                        pushed: r.pushed,
+                      })
+                    } : undefined}
+                    style={hasNew ? {cursor:'pointer'} : {}}
+                  >
                     <div className="check-item-name">
                       {r.icon_url && <img src={r.icon_url} alt="" width="20" height="20" style={{borderRadius:4}} />}
                       <strong>{r.app_name}</strong>
+                      {hasNew && <span style={{fontSize:10, color:'var(--text-muted)', marginLeft:6}}>(点击查看详情)</span>}
                     </div>
                     <div className="check-item-result">
                       {r.error ? `❌ ${r.error}` :
-                       r.detections?.has_new ?
+                       hasNew ?
                         `🆕 ${r.detections.total_new_ads} 个新内容, ${r.detections.total_new_screenshots} 张新截图` :
                        r.detections?.is_first_check ?
                         '📸 首次检查，已建立基线快照' :
@@ -396,7 +480,7 @@ export default function CompetitorWatch() {
                       {r.pushed && ' 📨 已推送微信'}
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             </>
           )}
@@ -426,8 +510,42 @@ export default function CompetitorWatch() {
 
             <div className="settings-field">
               <label>
-                <span className="label-zh">💬 企业微信应用消息推送 (推荐)</span>
-                <span className="label-en">WeCom App Message (Recommended)</span>
+                <span className="label-zh">💬 消息推送 Webhook (推荐·不受IP限制)</span>
+                <span className="label-en">WeCom Webhook (No IP restriction)</span>
+              </label>
+              <div className="wecom-app-form">
+                <div className="settings-row">
+                  <span className="settings-label">Webhook URL</span>
+                  <input
+                    type="text"
+                    readOnly
+                    value={(settings.wecom_webhooks && settings.wecom_webhooks[0]) || ''}
+                    style={{fontSize: '12px', fontFamily: 'monospace'}}
+                  />
+                </div>
+              </div>
+              <div className="wecom-app-status">
+                {settings.wecom_webhooks && settings.wecom_webhooks[0]
+                  ? '✅ 已配置 · 消息推送到企业微信群聊「毛白满的大公司」'
+                  : '⚠️ 未配置 · 需要在企业微信群中创建消息推送'}
+              </div>
+              <div className="field-hint">
+                <details>
+                  <summary>如何创建消息推送 Webhook？</summary>
+                  <div className="hint-detail">
+                    <p><strong>①</strong> 管理后台 → 应用管理 → 消息推送 → 添加可创建成员</p>
+                    <p><strong>②</strong> 进入企业微信内部群 → 右上角 "..." → 消息推送 → 新建</p>
+                    <p><strong>③</strong> 复制 Webhook 地址粘贴到上方</p>
+                    <p style={{color: 'var(--green)', marginTop: 8}}>💡 <strong>不需要域名！不需要IP白名单！完全免费！</strong></p>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            <div className="settings-field">
+              <label>
+                <span className="label-zh">📱 企业微信应用消息 (备用·需IP白名单)</span>
+                <span className="label-en">WeCom App (Backup·needs IP whitelist)</span>
               </label>
               <div className="wecom-app-form">
                 <div className="settings-row">
@@ -460,20 +578,8 @@ export default function CompetitorWatch() {
               </div>
               <div className="wecom-app-status">
                 {(settings.wecom_corpid && settings.wecom_agentid && settings.wecom_secret)
-                  ? '✅ 已配置 · 消息将推送到企业微信「竞品监控」应用'
+                  ? '✅ 已配置 · 备用推送渠道'
                   : '⚠️ 未完整配置 (需企业ID + AgentId + Secret)'}
-              </div>
-              <div className="field-hint">
-                <details>
-                  <summary>如何获取企业微信应用凭证？(不需要群机器人!)</summary>
-                  <div className="hint-detail">
-                    <p><strong>①</strong> 打开 <a href="https://work.weixin.qq.com/wework_admin/frame#/apps" target="_blank" rel="noreferrer">企业微信管理后台</a> → 应用管理 → 创建应用</p>
-                    <p><strong>②</strong> 「我的企业」→ 页面底部复制 <strong>企业ID (CorpID)</strong></p>
-                    <p><strong>③</strong> 应用详情页复制 <strong>AgentId</strong> 和 <strong>Secret</strong></p>
-                    <p><strong>④</strong> 填入上方三个输入框即可，消息直达企业微信消息列表</p>
-                    <p style={{color: 'var(--green)', marginTop: 8}}>💡 <strong>不需要群！不需要机器人！直接推到你企业微信对话！</strong></p>
-                  </div>
-                </details>
               </div>
             </div>
 
@@ -481,7 +587,7 @@ export default function CompetitorWatch() {
               <button
                 className="btn btn-test-push"
                 onClick={handleTestPush}
-                disabled={!(settings.wecom_corpid && settings.wecom_agentid && settings.wecom_secret)}
+                disabled={!((settings.wecom_webhooks && settings.wecom_webhooks[0]) || (settings.wecom_corpid && settings.wecom_agentid && settings.wecom_secret))}
               >
                 📨 测试推送
               </button>
@@ -499,6 +605,58 @@ export default function CompetitorWatch() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 检查结果详情弹窗（替代 alert） */}
+      {detailModal && (
+        <div className="watch-settings-overlay" onClick={() => setDetailModal(null)}>
+          <div className="watch-settings-panel" onClick={e => e.stopPropagation()} style={{maxWidth: 600}}>
+            <h3 style={{display:'flex',alignItems:'center',gap:10,margin:'0 0 16px 0'}}>
+              {detailModal.icon && <img src={detailModal.icon} alt="" width="28" height="28" style={{borderRadius:6}} />}
+              <span>{detailModal.title} — 新内容详情</span>
+            </h3>
+            {detailModal.content?.new_ads?.length > 0 && (
+              <div style={{marginBottom:16}}>
+                <div style={{fontWeight:600,color:'var(--accent)',marginBottom:8}}>
+                  🆕 新广告 ({detailModal.content.total_new_ads}条)
+                </div>
+                {detailModal.content.new_ads.map((a, ai) => (
+                  <div key={ai} style={{padding:'6px 10px',background:'rgba(255,255,255,0.04)',borderRadius:6,marginBottom:4,fontSize:13}}>
+                    <span style={{color:'var(--text-secondary)'}}>{a.source || a.source_label_zh || '广告'}</span>
+                    {a.title && <span style={{marginLeft:8,color:'var(--text-primary)'}}>{a.title}</span>}
+                    {a.video_url && <a href={a.video_url} target="_blank" rel="noreferrer" style={{marginLeft:8,color:'var(--accent)',fontSize:11}}>▶ 观看</a>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {detailModal.content?.new_screenshots?.length > 0 && (
+              <div style={{marginBottom:16}}>
+                <div style={{fontWeight:600,color:'var(--accent)',marginBottom:8}}>
+                  🖼 新截图 ({detailModal.content.total_new_screenshots}张)
+                </div>
+                <div style={{display:'flex',gap:8,overflowX:'auto'}}>
+                  {detailModal.content.new_screenshots.map((s, si) => (
+                    <img key={si} src={s.url || s} alt={`Screenshot ${si+1}`} style={{width:120,borderRadius:8,border:'1px solid var(--border-glass)'}} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {detailModal.content?.version_changed && (
+              <div style={{padding:'8px 12px',background:'rgba(79,140,255,0.08)',borderRadius:8,marginBottom:12,fontSize:13}}>
+                📱 版本变更: {detailModal.content.old_version || '?'} → {detailModal.content.new_version || '?'}
+              </div>
+            )}
+            {detailModal.pushed && (
+              <div style={{padding:'8px 12px',background:'rgba(0,200,83,0.08)',borderRadius:8,marginBottom:12,fontSize:13,color:'var(--green)'}}>
+                📨 已推送到企业微信
+              </div>
+            )}
+            {(!detailModal.content?.new_ads?.length && !detailModal.content?.new_screenshots?.length) && (
+              <div style={{color:'var(--text-muted)',textAlign:'center',padding:20}}>暂无详细内容</div>
+            )}
+            <button className="btn btn-primary" onClick={() => setDetailModal(null)} style={{marginTop:4}}>关闭</button>
           </div>
         </div>
       )}
