@@ -1158,6 +1158,90 @@ body {
   color: #fff;
 }
 
+/* 搜索栏 */
+.watch-search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.watch-search-bar .search-input {
+  flex: 1;
+  padding: 11px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.watch-search-bar .search-input:focus { border-color: var(--accent-color); }
+.watch-search-bar .btn-search {
+  padding: 10px 20px;
+  background: var(--accent-color);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.watch-search-bar .btn-search:hover { opacity: 0.85; }
+
+/* 搜索结果列表 */
+.watch-search-results {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+.watch-search-results .section-title {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.watch-search-grid { display: flex; flex-direction: column; gap: 8px; }
+.watch-search-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+.watch-search-card:hover { border-color: var(--border-color); }
+.watch-search-card-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--card-bg);
+}
+.watch-search-card-icon img { width: 100%; height: 100%; object-fit: cover; }
+.watch-search-icon-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: var(--accent-color);
+  background: rgba(99,102,241,0.1);
+}
+.watch-search-card-info { flex: 1; min-width: 0; }
+.watch-search-card-name { font-size: 14px; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.watch-search-card-dev { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.watch-search-card-platform { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.btn-add-watch {
+  padding: 6px 14px;
+  background: var(--accent-color);
+  border: none; border-radius: 8px;
+  color: #fff; font-size: 12px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.btn-add-watch:hover { opacity: 0.85; }
+
 /* 操作栏 */
 .watch-actions-bar {
   display: flex;

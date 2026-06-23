@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react'
 
 const API_BASE = '/api'
 
+// 所有类别 — 跨类别搜索
+const ALL_CATEGORIES = [
+  'TOOLS', 'GRAPHICS_DESIGN', 'PHOTOGRAPHY', 'PRODUCTIVITY',
+  'BUSINESS', 'EDUCATION', 'ENTERTAINMENT', 'LIFESTYLE',
+  'SOCIAL_NETWORKING', 'MUSIC', 'HEALTH_FITNESS', 'FINANCE',
+  'TRAVEL', 'SHOPPING',
+]
+
 export default function CompetitorWatch() {
   const [watchlist, setWatchlist] = useState([])
   const [loading, setLoading] = useState(true)
@@ -13,6 +21,11 @@ export default function CompetitorWatch() {
   const [checkingAll, setCheckingAll] = useState(false)
   const [checkResult, setCheckResult] = useState(null)
   const [testPushResult, setTestPushResult] = useState(null)
+
+  // 搜索
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [searchResults, setSearchResults] = useState([])
 
   // ============ 数据加载 ============
 
@@ -44,6 +57,94 @@ export default function CompetitorWatch() {
       .then(d => setSettings(d))
       .catch(() => {})
   }, [])
+
+  // ============ 搜索竞品 ============
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return
+    setSearching(true)
+    setSearchResults([])
+    const query = searchQuery.toLowerCase()
+    const hits = []
+
+    try {
+      // 跨所有类别并行搜索 App Store
+      const asPromises = ALL_CATEGORIES.map(cat =>
+        fetch(`${API_BASE}/appstore/top20?category=${cat}&limit=50`)
+          .then(r => r.json())
+          .then(d => (d.apps || []).filter(a =>
+            a.name?.toLowerCase().includes(query) ||
+            a.developer?.toLowerCase().includes(query)
+          ))
+          .catch(() => [])
+      )
+      const asResults = await Promise.all(asPromises)
+      const seen = new Set()
+      for (const apps of asResults) {
+        for (const a of apps) {
+          if (seen.has(a.app_id)) continue
+          seen.add(a.app_id)
+          hits.push({
+            id: a.app_id || '',
+            name: a.name || '',
+            developer: a.developer || '',
+            icon: a.icon_url || '',
+            platform: 'app_store',
+          })
+        }
+      }
+
+      // Google Play 搜索（按名称搜）
+      try {
+        const gpRes = await fetch(`${API_BASE}/googleplay/top?category=TOOLS&limit=50`)
+        const gpData = await gpRes.json();
+        (gpData.apps || []).filter(a =>
+          a.title?.toLowerCase().includes(query) ||
+          a.developer?.toLowerCase().includes(query)
+        ).slice(0, 10).forEach(a => {
+          hits.push({
+            id: a.appId || a.app_id || '',
+            name: a.title || a.name || '',
+            developer: a.developer || '',
+            icon: a.icon || a.icon_url || '',
+            platform: 'google_play',
+          })
+        })
+      } catch {}
+
+      setSearchResults(hits.slice(0, 20))
+    } catch (e) {
+      console.error('Search failed:', e)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  // ============ 添加竞品 ============
+
+  const handleAddWatch = async (app) => {
+    try {
+      const r = await fetch(`${API_BASE}/monitor/watch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          app_id: app.id,
+          platform: app.platform,
+          name: app.name,
+          developer: app.developer,
+          icon_url: app.icon,
+          country: 'US',
+        }),
+      })
+      if (r.ok) {
+        loadWatchlist()
+        // 从搜索结果中移除
+        setSearchResults(prev => prev.filter(s => s.id !== app.id))
+      }
+    } catch (e) {
+      console.error('Add watch failed:', e)
+    }
+  }
 
   // ============ 操作函数 ============
 
@@ -132,6 +233,53 @@ export default function CompetitorWatch() {
           ⚙️ 设置
         </button>
       </div>
+
+      {/* 搜索添加竞品 */}
+      <div className="watch-search-bar">
+        <input
+          type="text"
+          className="search-input"
+          placeholder="搜索竞品 App 名称或开发者..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSearch()}
+        />
+        <button className="btn btn-search" onClick={handleSearch} disabled={searching}>
+          {searching ? '搜索中...' : '🔍 搜索'}
+        </button>
+      </div>
+
+      {/* 搜索结果 */}
+      {searchResults.length > 0 && (
+        <div className="watch-search-results">
+          <div className="section-title">
+            搜索结果 / Search Results ({searchResults.length})
+          </div>
+          <div className="watch-search-grid">
+            {searchResults.map((app, i) => (
+              <div className="watch-search-card" key={i}>
+                <div className="watch-search-card-icon">
+                  {app.icon ? (
+                    <img src={app.icon} alt="" onError={e => { e.target.style.display = 'none' }} />
+                  ) : (
+                    <div className="watch-search-icon-placeholder">{app.name?.[0] || '?'}</div>
+                  )}
+                </div>
+                <div className="watch-search-card-info">
+                  <div className="watch-search-card-name">{app.name}</div>
+                  <div className="watch-search-card-dev">{app.developer}</div>
+                  <div className="watch-search-card-platform">
+                    {app.platform === 'google_play' ? '📱 Google Play' : '🍎 App Store'}
+                  </div>
+                </div>
+                <button className="btn btn-add-watch" onClick={() => handleAddWatch(app)}>
+                  + 关注
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 操作栏 */}
       <div className="watch-actions-bar">
