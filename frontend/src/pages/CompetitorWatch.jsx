@@ -2,14 +2,6 @@ import { useState, useEffect } from 'react'
 
 const API_BASE = '/api'
 
-// 所有类别 — 跨类别搜索
-const ALL_CATEGORIES = [
-  'TOOLS', 'GRAPHICS_DESIGN', 'PHOTOGRAPHY', 'PRODUCTIVITY',
-  'BUSINESS', 'EDUCATION', 'ENTERTAINMENT', 'LIFESTYLE',
-  'SOCIAL_NETWORKING', 'MUSIC', 'HEALTH_FITNESS', 'FINANCE',
-  'TRAVEL', 'SHOPPING',
-]
-
 export default function CompetitorWatch() {
   const [watchlist, setWatchlist] = useState([])
   const [loading, setLoading] = useState(true)
@@ -58,66 +50,67 @@ export default function CompetitorWatch() {
       .catch(() => {})
   }, [])
 
-  // ============ 搜索竞品 ============
+  // ============ 搜索竞品（直接用 iTunes Search API，1 次请求搞定） ============
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return
     setSearching(true)
     setSearchResults([])
-    const query = searchQuery.toLowerCase()
+    const term = encodeURIComponent(searchQuery.trim())
     const hits = []
 
     try {
-      // 跨所有类别并行搜索 App Store
-      const asPromises = ALL_CATEGORIES.map(cat =>
-        fetch(`${API_BASE}/appstore/top20?category=${cat}&limit=50`)
-          .then(r => r.json())
-          .then(d => (d.apps || []).filter(a =>
-            a.name?.toLowerCase().includes(query) ||
-            a.developer?.toLowerCase().includes(query)
-          ))
-          .catch(() => [])
+      // App Store: 直接用 iTunes Search API（全库搜索，不限于某类别 Top20）
+      const asRes = await fetch(
+        `https://itunes.apple.com/search?term=${term}&entity=software&country=US&limit=20`
       )
-      const asResults = await Promise.all(asPromises)
-      const seen = new Set()
-      for (const apps of asResults) {
-        for (const a of apps) {
-          if (seen.has(a.app_id)) continue
-          seen.add(a.app_id)
-          hits.push({
-            id: a.app_id || '',
-            name: a.name || '',
-            developer: a.developer || '',
-            icon: a.icon_url || '',
-            platform: 'app_store',
-          })
-        }
-      }
-
-      // Google Play 搜索（按名称搜）
-      try {
-        const gpRes = await fetch(`${API_BASE}/googleplay/top?category=TOOLS&limit=50`)
-        const gpData = await gpRes.json();
-        (gpData.apps || []).filter(a =>
-          a.title?.toLowerCase().includes(query) ||
-          a.developer?.toLowerCase().includes(query)
-        ).slice(0, 10).forEach(a => {
-          hits.push({
-            id: a.appId || a.app_id || '',
-            name: a.title || a.name || '',
-            developer: a.developer || '',
-            icon: a.icon || a.icon_url || '',
-            platform: 'google_play',
-          })
+      const asData = await asRes.json();
+      (asData.results || []).forEach(a => {
+        hits.push({
+          id: String(a.trackId || ''),
+          name: a.trackName || '',
+          developer: a.artistName || '',
+          icon: a.artworkUrl100 || '',
+          platform: 'app_store',
         })
-      } catch {}
-
-      setSearchResults(hits.slice(0, 20))
+      })
     } catch (e) {
-      console.error('Search failed:', e)
-    } finally {
-      setSearching(false)
+      console.error('App Store search failed:', e)
     }
+
+    // Google Play 搜索
+    try {
+      const gpRes = await fetch(`${API_BASE}/googleplay/top?category=TOOLS&limit=50`)
+      const gpData = await gpRes.json();
+      (gpData.apps || []).filter(a =>
+        a.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.developer?.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 10).forEach(a => {
+        hits.push({
+          id: a.appId || a.app_id || '',
+          name: a.title || a.name || '',
+          developer: a.developer || '',
+          icon: a.icon || a.icon_url || '',
+          platform: 'google_play',
+        })
+      })
+    } catch (e) {
+      console.error('Google Play search failed:', e)
+    }
+
+    // 去重（App Store 优先）
+    const seen = new Set()
+    const deduped = []
+    for (const h of hits) {
+      const key = h.name + '|' + h.platform
+      if (!seen.has(key)) {
+        seen.add(key)
+        deduped.push(h)
+      }
+    }
+
+    setSearchResults(deduped.slice(0, 20))
+    setSearching(false)
   }
 
   // ============ 添加竞品 ============
