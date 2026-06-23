@@ -567,34 +567,40 @@ async def get_google_play_app_detail(app_id: str, country: str = Query("US")):
 
 @app.get("/api/appstore/app/{app_id}/ads")
 async def get_app_ads(app_id: str, country: str = Query("US")):
-    """获取某个 App 的真实视频广告素材（来自 Meta Ad Library）"""
-    import httpx
+    """获取某个 App 的广告素材（Meta Ad Library + 截图预览）"""
     from services.meta_ad_library import search_ads_by_advertiser
-    from services.app_store_scraper import AppStoreScraper
+    import requests as sync_requests
 
-    # 获取 App 名称
     app_name = ""
     developer = ""
+    icon_url = ""
     screenshots = []
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.get(f"https://itunes.apple.com/lookup?id={app_id}")
-            result = resp.json()
-            if result.get("results"):
-                r = result["results"][0]
-                app_name = r.get("trackName", "")
-                developer = r.get("artistName", "")
-                screenshots = r.get("screenshotUrls", [])[:8]
-    except Exception as e:
-        print(f"[AppAds] iTunes Lookup 失败: {e}")
 
+    # 方式 1: iTunes Lookup API (同步 requests, 避免 httpx 依赖问题)
+    try:
+        r = sync_requests.get(
+            f"https://itunes.apple.com/lookup?id={app_id}",
+            timeout=10,
+        )
+        result = r.json()
+        if result.get("results"):
+            rr = result["results"][0]
+            app_name = rr.get("trackName", "")
+            developer = rr.get("artistName", "")
+            icon_url = rr.get("artworkUrl512", "")
+            screenshots = rr.get("screenshotUrls", [])
+            print(f"[AppAds] iTunes Lookup OK: {app_name}, {len(screenshots)} screenshots")
+    except Exception as e:
+        print(f"[AppAds] iTunes Lookup fail: {e}")
+
+    # 方式 2: 缓存兜底
     if not app_name:
-        # 从缓存中查找
         apps, _ = _refresh_app_store()
         for a in apps:
             if a.get("app_id") == app_id:
                 app_name = a.get("name", "")
                 developer = a.get("developer", "")
+                icon_url = a.get("icon_url", "")
                 screenshots = a.get("screenshots", [])
                 break
 
@@ -611,35 +617,46 @@ async def get_app_ads(app_id: str, country: str = Query("US")):
         api_token=meta_token if meta_token else None,
     )
 
-    # 如果 Meta 无数据，用截图生成广告预览卡片
+    # 判断是否为真实广告数据
     is_real_ads = not any(a.get("is_placeholder") for a in ads)
-    if not is_real_ads and screenshots:
-        ad_previews = []
-        for i, url in enumerate(screenshots[:8]):
-            ad_previews.append({
-                "ad_id": f"screenshot_{app_id}_{i}",
-                "advertiser": developer or app_name,
-                "title": f"{app_name} - 截图 #{i+1}",
-                "title_en": f"{app_name} - Screenshot #{i+1}",
-                "body": f"{app_name} 的 App Store 截图预览",
-                "body_en": f"App Store screenshot preview for {app_name}",
-                "thumbnail_url": url,
-                "video_url": None,
-                "snapshot_url": url,
-                "creative_type": "IMAGE",
-                "creative_type_zh": "截屏预览",
-                "platforms": [],
-                "platforms_zh": ["App Store 截图"],
-                "first_seen": "",
-                "last_seen": "",
-                "is_preview": True,
-            })
-        ads = ad_previews
+
+    # ===== 无真实广告时：用截图生成预览卡片 =====
+    if not is_real_ads:
+        urls = []
+        if screenshots:
+            urls = [u for u in screenshots if u][:8]  # 取最多8张，过滤空值
+        elif icon_url:
+            urls = [icon_url] * 4  # 没截图就用图标凑4张
+
+        if urls:
+            ad_previews = []
+            for i, url in enumerate(urls):
+                is_video_preview = url != icon_url and len(urls) > 1
+                ad_previews.append({
+                    "ad_id": f"screenshot_{app_id}_{i}",
+                    "advertiser": developer or app_name,
+                    "title": f"{app_name} - 截图 #{i+1}" if is_video_preview else f"{app_name}",
+                    "title_en": f"{app_name} - Screenshot #{i+1}" if is_video_preview else app_name,
+                    "body": f"{app_name} App Store 截图" if is_video_preview else f"{app_name}",
+                    "body_en": f"{app_name} App Store Screenshot" if is_video_preview else app_name,
+                    "thumbnail_url": url,
+                    "video_url": None,
+                    "snapshot_url": url,
+                    "creative_type": "IMAGE",
+                    "creative_type_zh": "截图预览" if is_video_preview else "App 图标",
+                    "platforms": [],
+                    "platforms_zh": ["App Store"],
+                    "first_seen": "",
+                    "last_seen": "",
+                    "is_preview": True,
+                })
+            ads = ad_previews[:8]
 
     return {
         "app_id": app_id,
         "app_name": app_name,
         "developer": developer,
+        "icon_url": icon_url,
         "country": country,
         "total": len(ads),
         "is_real_ads": is_real_ads,

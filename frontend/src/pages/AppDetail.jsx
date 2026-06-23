@@ -206,27 +206,41 @@ export default function AppDetail() {
                 key={ad.ad_id || i}
                 className="ad-video-card"
                 onClick={() => {
-                  if (ad.video_url || ad.snapshot_url) {
-                    setActiveVideo(ad)
-                  }
+                  const hasMedia = ad.video_url || ad.snapshot_url
+                  if (hasMedia) setActiveVideo(ad)
                 }}
                 style={{cursor: (ad.video_url || ad.snapshot_url) ? 'pointer' : 'default'}}
               >
                 {/* 缩略图 */}
                 <div className="ad-video-thumb">
                   {ad.thumbnail_url ? (
-                    <img src={ad.thumbnail_url} alt={ad.title} />
+                    <img src={ad.thumbnail_url} alt={ad.title} loading="lazy" />
                   ) : (
-                    <div className="app-icon-placeholder">🎬</div>
+                    <div className="app-icon-placeholder">
+                      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                        <rect width="40" height="40" rx="8" fill="rgba(79,140,255,0.15)"/>
+                        <path d="M18 14v12l10-6-10-6z" fill="rgba(79,140,255,0.5)"/>
+                      </svg>
+                    </div>
                   )}
                   <div className="ad-play-btn">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                      <circle cx="16" cy="16" r="16" fill="rgba(0,0,0,0.6)"/>
-                      <path d="M12 10l10 6-10 6V10z" fill="white"/>
-                    </svg>
+                    {ad.video_url ? (
+                      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                        <circle cx="18" cy="18" r="18" fill="rgba(0,0,0,0.65)"/>
+                        <path d="M14 11l10 7-10 7V11z" fill="white"/>
+                      </svg>
+                    ) : (
+                      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                        <circle cx="18" cy="18" r="18" fill="rgba(0,0,0,0.5)"/>
+                        <path d="M16 14h-2v2h2v-2zm0 4h-2v4h2v-4zm2-6h2v2h-2v-2zm0 4h2v4h-2v-4zm4-2v8l-1 1h-6l-1-1v-8l1-1h6l1 1z" fill="white"/>
+                      </svg>
+                    )}
                   </div>
-                  {ad.creative_type === 'VIDEO' && (
+                  {ad.video_url && (
                     <span className="ad-type-badge">VIDEO</span>
+                  )}
+                  {!ad.video_url && ad.is_preview && (
+                    <span className="ad-type-badge" style={{background:'rgba(0,214,143,0.7)'}}>截图</span>
                   )}
                 </div>
                 {/* 信息 */}
@@ -252,12 +266,15 @@ export default function AppDetail() {
         )}
       </div>
 
-      {/* Video Player Modal */}
+      {/* Media Viewer Modal */}
       {activeVideo && (
         <div className="video-modal-overlay" onClick={() => setActiveVideo(null)}>
           <div className="video-modal" onClick={e => e.stopPropagation()}>
             <div className="video-modal-header">
-              <div className="video-modal-title">{activeVideo.title}</div>
+              <div className="video-modal-title">
+                {activeVideo.video_url ? '🎬 ' : '📱 '}
+                {activeVideo.title}
+              </div>
               <button className="video-modal-close" onClick={() => setActiveVideo(null)}>✕</button>
             </div>
             <div className="video-modal-body">
@@ -265,26 +282,33 @@ export default function AppDetail() {
                 <video
                   controls
                   autoPlay
-                  style={{width:'100%', maxHeight:'60vh', borderRadius:8, background:'#000'}}
+                  style={{width:'100%', maxHeight:'70vh', borderRadius:'0 0 8px 8px', background:'#000'}}
                   src={activeVideo.video_url}
                   poster={activeVideo.thumbnail_url}
                 >
-                  您的浏览器不支持视频播放 / Your browser does not support video playback
+                  您的浏览器不支持视频播放
                 </video>
               ) : activeVideo.snapshot_url ? (
-                <img
-                  src={activeVideo.snapshot_url}
-                  alt={activeVideo.title}
-                  style={{width:'100%', maxHeight:'60vh', objectFit:'contain', borderRadius:8}}
-                />
-              ) : null}
+                <div style={{width:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:'#000', padding:16}}>
+                  <img
+                    src={activeVideo.snapshot_url}
+                    alt={activeVideo.title}
+                    style={{maxWidth:'100%', maxHeight:'70vh', objectFit:'contain', borderRadius:4}}
+                  />
+                </div>
+              ) : (
+                <div style={{padding:40, textAlign:'center', color:'var(--text-muted)'}}>
+                  暂无预览内容 / No preview available
+                </div>
+              )}
             </div>
             <div className="video-modal-footer">
               <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                {activeVideo.body_en || activeVideo.title_en || ''}
+                {activeVideo.body || activeVideo.title_en || ''}
               </div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-                {activeVideo.platforms_zh?.join(' · ') || 'App Store'} · {activeVideo.first_seen?.slice(0, 10) || ''}
+                {activeVideo.platforms_zh?.join(' · ') || 'App Store'}
+                {activeVideo.first_seen && ` · ${activeVideo.first_seen?.slice(0, 10)}`}
               </div>
             </div>
           </div>
