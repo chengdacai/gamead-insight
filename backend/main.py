@@ -997,6 +997,9 @@ class WatchAppRequest(BaseModel):
 
 
 class MonitorSettingsRequest(BaseModel):
+    wecom_corpid: str = ""
+    wecom_agentid: int = 0
+    wecom_secret: str = ""
     wecom_webhooks: list[str] = []
     serverchan_send_keys: list[str] = []
     check_interval_hours: int = 1
@@ -1014,6 +1017,7 @@ async def api_get_watchlist():
         "items": items,
         "monitor_running": status["running"],
         "check_interval_hours": status["check_interval_hours"],
+        "wecom_app_configured": status["wecom_app_configured"],
         "wecom_configured": status["wecom_configured"],
         "serverchan_configured": status["serverchan_configured"],
         "any_notify_configured": status["any_notify_configured"],

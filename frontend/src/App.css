@@ -1898,3 +1898,53 @@ body {
     flex-wrap: wrap;
   }
 }
+
+/* WeCom App Settings Form */
+.wecom-app-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-label {
+  min-width: 130px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.settings-row input {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: monospace;
+}
+
+.settings-row input:focus {
+  border-color: var(--accent-color);
+  outline: none;
+}
+
+.wecom-app-status {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  color: var(--green);
+  background: rgba(0, 214, 143, 0.08);
+}
+
+.wecom-app-status.warning {
+  color: var(--orange);
+  background: rgba(255, 165, 0, 0.08);
+}

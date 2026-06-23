@@ -609,6 +609,9 @@ def get_settings() -> dict:
     """获取监控设置"""
     defaults = {
         "check_interval_hours": 1,
+        "wecom_corpid": "",
+        "wecom_agentid": 0,
+        "wecom_secret": "",
         "wecom_webhooks": [],
         "serverchan_send_keys": [],
         "notify_new_ads": True,
@@ -620,7 +623,7 @@ def get_settings() -> dict:
     if "wecom_webhook" in settings and "wecom_webhooks" not in settings:
         old = settings.pop("wecom_webhook", "")
         settings["wecom_webhooks"] = [old] if old else []
-    # 兼容旧版没有 serverchan_send_keys
+    # 兼容旧版没有的字段
     if "serverchan_send_keys" not in settings:
         settings["serverchan_send_keys"] = []
     return {**defaults, **settings}
@@ -697,7 +700,8 @@ def get_monitor_status() -> dict:
         "checked_count": checked,
         "total_alerts": total_alerts,
         "recent_alerts": recent_alerts[:5],
+        "wecom_app_configured": notify["wecom_app"]["configured"],
         "wecom_configured": len(notify["wecom"]["webhooks"]) > 0,
         "serverchan_configured": len(notify["serverchan"]["send_keys"]) > 0,
-        "any_notify_configured": (len(notify["wecom"]["webhooks"]) > 0 or len(notify["serverchan"]["send_keys"]) > 0),
+        "any_notify_configured": (notify["wecom_app"]["configured"] or len(notify["wecom"]["webhooks"]) > 0 or len(notify["serverchan"]["send_keys"]) > 0),
     }

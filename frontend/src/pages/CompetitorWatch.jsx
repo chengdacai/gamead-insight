@@ -8,8 +8,7 @@ export default function CompetitorWatch() {
   const [error, setError] = useState(null)
   const [monitorStatus, setMonitorStatus] = useState({})
   const [showSettings, setShowSettings] = useState(false)
-  const [settings, setSettings] = useState({ wecom_webhooks: [], serverchan_send_keys: [], check_interval_hours: 1 })
-  const [newWebhookUrl, setNewWebhookUrl] = useState('')
+  const [settings, setSettings] = useState({ wecom_corpid: '', wecom_agentid: 0, wecom_secret: '', wecom_webhooks: [], serverchan_send_keys: [], check_interval_hours: 1 })
   const [newServerchanKey, setNewServerchanKey] = useState('')
   const [savingSettings, setSavingSettings] = useState(false)
   const [checkingAll, setCheckingAll] = useState(false)
@@ -35,6 +34,7 @@ export default function CompetitorWatch() {
       setMonitorStatus({
         running: data.monitor_running,
         interval: data.check_interval_hours,
+        wecom_app: data.wecom_app_configured,
         wecom: data.wecom_configured,
         serverchan: data.serverchan_configured,
         any_notify: data.any_notify_configured,
@@ -138,17 +138,6 @@ export default function CompetitorWatch() {
     }
   }
 
-  const handleAddWebhook = () => {
-    if (!newWebhookUrl.trim()) return
-    if (settings.wecom_webhooks?.includes(newWebhookUrl.trim())) return
-    setSettings({ ...settings, wecom_webhooks: [...(settings.wecom_webhooks || []), newWebhookUrl.trim()] })
-    setNewWebhookUrl('')
-  }
-
-  const handleRemoveWebhook = (url) => {
-    setSettings({ ...settings, wecom_webhooks: (settings.wecom_webhooks || []).filter(u => u !== url) })
-  }
-
   const handleAddServerchanKey = () => {
     if (!newServerchanKey.trim()) return
     if (settings.serverchan_send_keys?.includes(newServerchanKey.trim())) return
@@ -208,7 +197,7 @@ export default function CompetitorWatch() {
           <span className="status-label-zh">通知推送</span>
           <span className="status-label-en">
             {monitorStatus.any_notify
-              ? `企微:${monitorStatus.wecom ? '✓' : '✗'} Server酱:${monitorStatus.serverchan ? '✓' : '✗'}`
+              ? (monitorStatus.wecom_app ? '企业微信 ✓ ' : '') + (monitorStatus.serverchan ? 'Server酱 ✓' : '')
               : '未配置'}
           </span>
         </div>
@@ -450,8 +439,61 @@ export default function CompetitorWatch() {
 
             <div className="settings-field">
               <label>
-                <span className="label-zh">📱 Server酱 SendKey (普通微信可用)</span>
-                <span className="label-en">ServerChan SendKeys (for regular WeChat)</span>
+                <span className="label-zh">💬 企业微信应用消息推送 (推荐)</span>
+                <span className="label-en">WeCom App Message (Recommended)</span>
+              </label>
+              <div className="wecom-app-form">
+                <div className="settings-row">
+                  <span className="settings-label">企业ID / CorpID</span>
+                  <input
+                    type="text"
+                    placeholder="ww..."
+                    value={settings.wecom_corpid || ''}
+                    onChange={e => setSettings({...settings, wecom_corpid: e.target.value})}
+                  />
+                </div>
+                <div className="settings-row">
+                  <span className="settings-label">AgentId</span>
+                  <input
+                    type="number"
+                    placeholder="1000002"
+                    value={settings.wecom_agentid || ''}
+                    onChange={e => setSettings({...settings, wecom_agentid: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                <div className="settings-row">
+                  <span className="settings-label">Secret</span>
+                  <input
+                    type="password"
+                    placeholder="..."
+                    value={settings.wecom_secret || ''}
+                    onChange={e => setSettings({...settings, wecom_secret: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="wecom-app-status">
+                {(settings.wecom_corpid && settings.wecom_agentid && settings.wecom_secret)
+                  ? '✅ 已配置 · 消息将推送到企业微信「竞品监控」应用'
+                  : '⚠️ 未完整配置 (需企业ID + AgentId + Secret)'}
+              </div>
+              <div className="field-hint">
+                <details>
+                  <summary>如何获取企业微信应用凭证？(不需要群机器人!)</summary>
+                  <div className="hint-detail">
+                    <p><strong>①</strong> 打开 <a href="https://work.weixin.qq.com/wework_admin/frame#/apps" target="_blank" rel="noreferrer">企业微信管理后台</a> → 应用管理 → 创建应用</p>
+                    <p><strong>②</strong> 「我的企业」→ 页面底部复制 <strong>企业ID (CorpID)</strong></p>
+                    <p><strong>③</strong> 应用详情页复制 <strong>AgentId</strong> 和 <strong>Secret</strong></p>
+                    <p><strong>④</strong> 填入上方三个输入框即可，消息直达企业微信消息列表</p>
+                    <p style={{color: 'var(--green)', marginTop: 8}}>💡 <strong>不需要群！不需要机器人！直接推到你企业微信对话！</strong></p>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            <div className="settings-field">
+              <label>
+                <span className="label-zh">📱 Server酱 SendKey (普通微信可用·备用)</span>
+                <span className="label-en">ServerChan SendKeys (backup)</span>
               </label>
               <div className="webhook-list">
                 {(settings.serverchan_send_keys || []).map((key, i) => (
@@ -492,48 +534,32 @@ export default function CompetitorWatch() {
 
             <div className="settings-field">
               <label>
-                <span className="label-zh">💬 企业微信机器人 Webhook (需企业微信)</span>
-                <span className="label-en">WeCom Bot Webhooks (requires WeCom)</span>
+                <span className="label-zh">🔗 企业微信群机器人 Webhook (备用·需要群)</span>
+                <span className="label-en">WeCom Bot Webhooks (backup·needs group)</span>
               </label>
               <div className="webhook-list">
                 {(settings.wecom_webhooks || []).map((url, i) => (
                   <div className="webhook-item" key={i}>
                     <span className="webhook-url" title={url}>{url.substring(0, 60)}...</span>
-                    <button className="btn btn-remove-webhook" onClick={() => handleRemoveWebhook(url)}>✕</button>
+                    <button className="btn btn-remove-webhook" onClick={() => {
+                      setSettings({...settings, wecom_webhooks: (settings.wecom_webhooks || []).filter(u => u !== url)})
+                    }}>✕</button>
                   </div>
                 ))}
               </div>
-              <div className="webhook-add-row">
-                <input
-                  type="text"
-                  placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=..."
-                  value={newWebhookUrl}
-                  onChange={e => setNewWebhookUrl(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAddWebhook()}
-                />
-                <button className="btn btn-add-webhook" onClick={handleAddWebhook}>+ 添加</button>
-              </div>
-              <div className="webhook-count">
-                已配置 {(settings.wecom_webhooks || []).length} 个群机器人
-              </div>
-              <div className="field-hint">
-                <details>
-                  <summary>如何获取 Webhook URL？/ How to get Webhook URL?</summary>
-                  <div className="hint-detail">
-                    <p><strong>①</strong> 打开企业微信 → 任意群聊 → 右上角「···」→ 「群机器人」→ 「添加机器人」</p>
-                    <p><strong>②</strong> 复制 Webhook 地址，粘贴到上方输入框，点击"+ 添加"</p>
-                    <p><strong>③</strong> 可重复添加多个群的机器人，推送时会同时通知所有群</p>
-                    <p><strong>④</strong> 建议创建一个"竞品监控"专用群聊，只拉自己和机器人</p>
-                  </div>
-                </details>
-              </div>
+              <button className="btn btn-add-webhook" onClick={() => {
+                const url = prompt('粘贴企业微信群机器人 Webhook URL:')
+                if (url?.trim()) {
+                  setSettings({...settings, wecom_webhooks: [...(settings.wecom_webhooks || []), url.trim()]})
+                }
+              }}>+ 添加 Webhook</button>
             </div>
 
             <div className="settings-actions">
               <button
                 className="btn btn-test-push"
                 onClick={handleTestPush}
-                disabled={!(settings.wecom_webhooks?.length || settings.serverchan_send_keys?.length)}
+                disabled={!(settings.wecom_corpid || settings.wecom_webhooks?.length || settings.serverchan_send_keys?.length)}
               >
                 📨 测试推送
               </button>
