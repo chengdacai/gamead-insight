@@ -1158,64 +1158,86 @@ body {
   color: #fff;
 }
 
-/* 搜索栏 */
-.watch-search-bar {
+/* 操作栏 */
+.watch-actions-bar {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
-.watch-search-bar .search-input {
-  flex: 1;
-  padding: 10px 16px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  color: var(--text-primary);
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.watch-search-bar .search-input:focus {
-  border-color: var(--accent-color);
-}
-
-.watch-search-bar .btn-search,
-.watch-search-bar .btn-check-all {
-  padding: 10px 18px;
-  background: var(--accent-color);
+.watch-actions-bar .btn-check-all {
+  padding: 10px 22px;
+  background: #00B894;
   border: none;
   border-radius: 10px;
   color: #fff;
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   white-space: nowrap;
   transition: opacity 0.2s;
 }
+.watch-actions-bar .btn-check-all:hover { opacity: 0.85; }
+.watch-actions-bar .btn-check-all:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.watch-search-bar .btn-search:hover,
-.watch-search-bar .btn-check-all:hover {
-  opacity: 0.85;
+.watch-source-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
 }
 
-.watch-search-bar .btn-check-all {
-  background: #00B894;
+/* 数据来源说明 */
+.watch-sources-banner {
+  margin-bottom: 20px;
 }
-
-/* 搜索结果 */
-.watch-search-results {
-  margin-bottom: 24px;
-  padding: 16px;
+.watch-sources-banner details {
   background: var(--card-bg);
-  border-radius: 12px;
   border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 16px;
 }
-
-.watch-search-results .section-title {
-  margin: 0 0 12px 0;
-  font-size: 14px;
+.watch-sources-banner summary {
+  font-size: 13px;
   color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 500;
+}
+.sources-detail {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.source-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.source-row.real-ads { background: rgba(255, 107, 107, 0.08); }
+.source-row.store-content { background: rgba(66, 133, 244, 0.06); }
+.source-row.video-content { background: rgba(0, 184, 148, 0.06); }
+.source-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.source-row.real-ads .source-badge { background: #FF6B6B; color: #fff; }
+.source-row.store-content .source-badge { background: #4285F4; color: #fff; }
+.source-row.video-content .source-badge { background: #00B894; color: #fff; }
+.source-name { font-weight: 600; color: var(--text-primary); min-width: 140px; }
+.source-desc { color: var(--text-secondary); }
+
+/* 检查结果 - 来源说明 */
+.check-sources {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
 }
 
 /* 卡片网格 */
@@ -1633,10 +1655,6 @@ body {
 
   .watch-status-bar .btn-settings {
     margin-left: 0;
-  }
-
-  .watch-search-bar {
-    flex-wrap: wrap;
   }
 
   .watch-card {

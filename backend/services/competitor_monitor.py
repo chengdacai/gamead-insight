@@ -1,5 +1,31 @@
 """
-竞品广告监控引擎 v1.0
+竞品广告监控引擎 v1.1
+
+═══════════════════════════════════════
+📡 广告数据来源 (Ad Data Sources)
+═══════════════════════════════════════
+
+渠道 1: Google Play 商店页 — 宣传视频 (Store Content)
+  说明: 抓取 App 在 Google Play 商店页展示的宣传视频
+  性质: 商店素材 (非付费广告)，但竞品更换宣传视频通常意味着新投放活动
+  数据: video_url (YouTube), video_id, title
+  方式: google-play-scraper 免费库，无需 API Key
+  频率: 每 1 小时
+
+渠道 2: Google Ads 透明度中心 — 付费广告 (Real Paid Ads)
+  说明: Google 官方透明度中心，展示广告主在 Google 搜索/YouTube/Gmail 的全部广告
+  性质: 真实广告投放数据，含广告缩略图/格式/投放时间/展示次数
+  数据: 搜索链接 (需 JS 渲染，后端仅做广告主存在性验证)
+  方式: HTTP 请求验证 + 生成查看链接，完全免费
+  频率: 每 1 小时
+
+渠道 3: App Store 商店页 — 截图/版本 (Store Content)
+  说明: iTunes Lookup API 获取 App Store 最新截图和版本号
+  性质: 商店素材变更 (非广告)，但截图更新常伴随新广告投放
+  数据: screenshotUrls, version
+  方式: iTunes Search API，免费无限制
+
+═══════════════════════════════════════
 功能：
 1. 关注列表管理（增删改查，JSON 文件存储）
 2. 广告快照保存（记录每次抓取的广告数据）
@@ -112,57 +138,79 @@ def remove_from_watchlist(app_id: str, platform: str = "app_store") -> dict:
 
 # ============ 广告抓取函数 ============
 
-def _fetch_gp_ads(bundle_id: str, app_name: str, country: str = "US") -> list[dict]:
-    """抓取 Google Play 宣传视频"""
+def _fetch_gp_video(bundle_id: str, app_name: str, country: str = "US") -> list[dict]:
+    """
+    渠道 1: Google Play 商店宣传视频 (Store Content)
+    抓取 App 在 Google Play 商店页展示的宣传视频链接
+    性质: 商店素材，非付费广告投放数据
+    """
     ads = []
     try:
         from google_play_scraper import search
-        results = search(app_name.split(":")[0].strip(), n_hits=5, country=country.lower())
+        results = search(app_name.split(":")[0].strip(), n_hits=3, country=country.lower())
 
         for r in results:
             video = r.get("video")
-            # 尝试匹配
             rid = r.get("appId", "")
             if rid and bundle_id and rid.lower() != bundle_id.lower():
-                # 优先匹配 bundle_id，但如果找不到完全匹配也保留
                 continue
-            if not rid:
-                rid = bundle_id
 
             if video:
+                video_id = video.split("=")[-1] if "youtube" in video else video
                 ads.append({
-                    "source": "google_play",
-                    "source_label": "Google Play",
-                    "video_id": video.split("=")[-1] if "youtube" in video else video,
+                    "source": "google_play_video",
+                    "source_label_zh": "Google Play 商店宣传视频",
+                    "source_label_en": "Google Play Store Video",
+                    "source_nature": "store_content",
+                    "video_id": video_id,
                     "video_url": video,
                     "title": r.get("title", ""),
-                    "platform": "android",
                     "fetched_at": _now_iso(),
                 })
     except Exception as e:
-        print(f"[Monitor] GP search failed for {app_name}: {e}")
+        print(f"[Monitor] GP video failed for {app_name}: {e}")
     return ads
 
 
 def _fetch_google_ads(app_name: str, country: str = "US") -> list[dict]:
-    """抓取 Google Ads Transparency Center（链接引导）"""
+    """
+    渠道 2: Google Ads 透明度中心 (Real Paid Ads)
+    验证广告主存在性 + 生成查看链接
+    性质: 真实广告投放数据（Google搜索/YouTube/Gmail展示广告）
+    """
     ads = []
     try:
-        parts = app_name.split(":")[0].strip().split()
-        search_term = " ".join(parts[:2]) if len(parts) >= 2 else app_name  # 前两个词
+        search_term = app_name.split(":")[0].strip().split()
+        lookup_name = " ".join(search_term[:3]) if len(search_term) >= 3 else app_name.split(":")[0].strip()
 
-        # 检查广告主是否存在
-        ads_url = f"https://adstransparency.google.com/advertiser/AR18091944865537032193?region=US&search_query={search_term}"
+        search_url = f"https://adstransparency.google.com/?advertiser_name={lookup_name.replace(' ', '+')}&region={country}"
+
+        # 验证广告主是否存在
+        exists = False
+        try:
+            resp = sync_requests.get(
+                search_url,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
+                timeout=10,
+                allow_redirects=True,
+            )
+            if resp.status_code == 200 and lookup_name.lower()[:5] in resp.text.lower():
+                exists = True
+        except:
+            pass
+
         ads.append({
             "source": "google_ads",
-            "source_label": "Google Ads",
-            "video_id": None,
-            "video_url": f"https://adstransparency.google.com/?advertiser_name={search_term.replace(' ', '+')}&region={country}",
-            "title": f"{search_term} — Google Ads 广告主",
-            "platform": "cross",
-            "action_type": "link",
-            "action_hint_zh": "在 Google Ads 透明度中心查看",
-            "action_hint_en": "View on Google Ads Transparency Center",
+            "source_label_zh": "Google Ads 透明度中心",
+            "source_label_en": "Google Ads Transparency Center",
+            "source_nature": "real_ad_data",
+            "video_id": f"gads_{lookup_name.replace(' ', '_').lower()}",
+            "video_url": None,
+            "external_url": search_url,
+            "title": f"{lookup_name} | Google Ads Library",
+            "advertiser_exists": exists,
+            "note_zh": "点击链接查看真实付费广告（缩略图/格式/展示量）",
+            "note_en": "Click to view real paid ads (thumbnails/formats/impressions)",
             "fetched_at": _now_iso(),
         })
     except Exception as e:
@@ -170,17 +218,75 @@ def _fetch_google_ads(app_name: str, country: str = "US") -> list[dict]:
     return ads
 
 
-def _fetch_app_store_screenshots(app_id: str) -> list[dict]:
-    """抓取 App Store 最新截图"""
+def _fetch_youtube_videos(app_name: str) -> list[dict]:
+    """
+    渠道 4: YouTube 搜索 (辅助发现)
+    搜索 App 名称相关的 YouTube 视频（可能包含测评/广告/发布视频）
+    性质: UGC 内容，非官方广告数据
+    """
+    ads = []
+    try:
+        import urllib.parse
+        query = urllib.parse.quote_plus(f"{app_name} app")
+        search_url = f"https://www.youtube.com/results?search_query={query}"
+
+        resp = sync_requests.get(
+            search_url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "Accept-Language": "en-US,en;q=0.9",
+            },
+            timeout=10,
+        )
+
+        if resp.status_code == 200:
+            import re
+            # 提取 YouTube 视频 ID (from ytInitialData or videoId patterns)
+            video_ids = re.findall(r'"videoId":"([^"]+)"', resp.text)
+            seen = set()
+            count = 0
+            for vid in video_ids:
+                if vid in seen:
+                    continue
+                seen.add(vid)
+                count += 1
+                ads.append({
+                    "source": "youtube",
+                    "source_label_zh": "YouTube 相关视频",
+                    "source_label_en": "YouTube Related Videos",
+                    "source_nature": "ugc_content",
+                    "video_id": vid,
+                    "video_url": f"https://www.youtube.com/watch?v={vid}",
+                    "title": f"{app_name} — YouTube 搜索结果 #{count}",
+                    "fetched_at": _now_iso(),
+                })
+                if count >= 3:
+                    break
+    except Exception as e:
+        print(f"[Monitor] YouTube search failed for {app_name}: {e}")
+    return ads
+
+
+def _fetch_app_store_metadata(app_id: str) -> list[dict]:
+    """
+    渠道 3: App Store 商店素材 (Store Content)
+    iTunes Lookup API 获取最新截图和版本号
+    性质: 商店素材变更，常伴随新广告投放
+    """
     screenshots = []
     try:
         r = sync_requests.get(f"https://itunes.apple.com/lookup?id={app_id}", timeout=10)
         data = r.json()
         for result in data.get("results", []):
+            version = result.get("version", "")
             for url in result.get("screenshotUrls", [])[:5]:
                 screenshots.append({
                     "url": url,
+                    "version": version,
                     "source": "app_store",
+                    "source_label_zh": "App Store 商店截图",
+                    "source_label_en": "App Store Screenshots",
+                    "source_nature": "store_content",
                     "fetched_at": _now_iso(),
                 })
     except Exception as e:
@@ -189,33 +295,37 @@ def _fetch_app_store_screenshots(app_id: str) -> list[dict]:
 
 
 def fetch_all_ads_for_app(app: dict) -> dict:
-    """为指定 App 抓取所有广告素材"""
+    """为指定 App 抓取全部 4 个渠道的广告数据"""
+    app_name = app.get("name", "")
     app_id = str(app.get("app_id", ""))
     platform = app.get("platform", "app_store")
-    app_name = app.get("name", "")
     bundle_id = app.get("bundle_id", "")
     country = app.get("country", "US")
 
     video_ads = []
     screenshots = []
 
+    # 渠道 1: Google Play 宣传视频 (所有平台都尝试)
     if platform == "google_play":
         bid = bundle_id or app_id
-        video_ads = _fetch_gp_ads(bid, app_name, country)
-        google_ads = _fetch_google_ads(app_name, country)
-        video_ads.extend(google_ads)
-
-    elif platform == "app_store":
-        # App Store: 截图 + 尝试通过名称在 GP 搜索对应 App
-        screenshots = _fetch_app_store_screenshots(app_id)
-        # 跨平台搜索（可能找到同款 App 的 Android 版）
+        video_ads = _fetch_gp_video(bid, app_name, country)
+    else:
         try:
-            gp_ads = _fetch_gp_ads(app_name, app_name, country)
-            video_ads = gp_ads
+            video_ads = _fetch_gp_video(app_name, app_name, country)
         except:
             pass
-        google_ads = _fetch_google_ads(app_name, country)
-        video_ads.extend(google_ads)
+
+    # 渠道 2: Google Ads 透明度中心 (所有平台)
+    google_ads = _fetch_google_ads(app_name, country)
+    video_ads.extend(google_ads)
+
+    # 渠道 3: App Store 素材 (仅 App Store)
+    if platform == "app_store":
+        screenshots = _fetch_app_store_metadata(app_id)
+
+    # 渠道 4: YouTube 搜索 (所有平台)
+    yt_videos = _fetch_youtube_videos(app_name)
+    video_ads.extend(yt_videos)
 
     return {
         "app_id": app_id,
@@ -225,6 +335,12 @@ def fetch_all_ads_for_app(app: dict) -> dict:
         "screenshots": screenshots,
         "fetched_at": _now_iso(),
         "total_ads": len(video_ads),
+        "sources_summary": {
+            "google_play_video": sum(1 for a in video_ads if a.get("source") == "google_play_video"),
+            "google_ads": sum(1 for a in video_ads if a.get("source") == "google_ads"),
+            "youtube": sum(1 for a in video_ads if a.get("source") == "youtube"),
+            "app_store_screenshots": len(screenshots),
+        },
     }
 
 
@@ -281,11 +397,12 @@ def detect_new_ads(current: dict, previous: dict | None) -> dict:
             new_ads.append(ad)
             details.append({
                 "type": "new_ad",
-                "source": ad.get("source_label", "Unknown"),
+                "source": ad.get("source_label_zh", "Unknown"),
+                "source_nature": ad.get("source_nature", "store_content"),
                 "title": ad.get("title", ""),
                 "video_id": vid,
                 "video_url": ad.get("video_url", ""),
-                "platform": ad.get("platform", ""),
+                "external_url": ad.get("external_url", ""),
             })
 
     # 检测新截图
@@ -366,16 +483,21 @@ def push_wecom_notification(app_name: str, app_id: str, detections: dict, webhoo
     lines = [
         f'## 🔔 竞品广告提醒',
         f'',
-        f'**{app_name}** 检测到新动态',
+        f'**{app_name}** 检测到新动态 ({new_ad_count} 个变更)',
         f'',
     ]
 
     for d in details:
         if d["type"] == "new_ad":
             source = d.get("source", "Unknown")
-            title = d.get("title", "")[:50]
-            lines.append(f'> 📺 新广告 <font color="warning">{source}</font>')
-            lines.append(f'> {title}')
+            title = d.get("title", "")[:60]
+            nature = d.get("source_nature", "store_content")
+            badge = "📢 真实广告" if nature == "real_ad_data" else ("🎬 视频内容" if nature == "ugc_content" else "🏪 商店素材")
+            lines.append(f'> {badge} **{source}**')
+            if title:
+                lines.append(f'> {title}')
+            if d.get("video_url"):
+                lines.append(f'> [▶ 观看]({d["video_url"]})')
             lines.append(f'')
         elif d["type"] == "new_screenshots":
             lines.append(f'> 🖼️ App Store 截图更新 ({d["count"]} 张)')
@@ -495,7 +617,9 @@ def check_all() -> list[dict]:
                 "checked_at": _now_iso(),
             })
 
-    print(f"[Monitor] 批量检查完成: {len(items)} 个 App, {sum(1 for r in results if r.get('detections', {}).get('has_new'))} 个有新广告")
+    print(f"[Monitor] 批量检查完成: {len(items)} App, "
+          f"来源=[GP视频/GoogleAds/YT/AppStore截图], "
+          f"新变更 {sum(1 for r in results if r.get('detections', {}).get('has_new'))} 个")
     return results
 
 
@@ -504,7 +628,7 @@ def check_all() -> list[dict]:
 def get_settings() -> dict:
     """获取监控设置"""
     defaults = {
-        "check_interval_hours": 6,
+        "check_interval_hours": 1,
         "wecom_webhook": "",
         "notify_new_ads": True,
         "notify_screenshot_changes": True,
