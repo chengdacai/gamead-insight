@@ -1,15 +1,6 @@
 # GameAd Insight - Render Dockerfile
-# Multi-stage build: 前端编译 + 后端 + Chrome
+# 前端已预编译至 backend/static/，Docker 仅构建后端
 
-# ===== Stage 1: 编译前端 =====
-FROM node:22-alpine AS frontend-builder
-WORKDIR /frontend
-COPY frontend/package*.json ./
-RUN npm install
-COPY frontend/ ./
-RUN npm run build
-
-# ===== Stage 2: 后端 + 静态文件 =====
 FROM python:3.11-slim
 
 # 安装 Chrome
@@ -28,11 +19,8 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制后端代码
+# 复制后端代码（含预编译的前端静态文件 static/）
 COPY backend/ .
-
-# 从前端构建阶段复制编译产物
-COPY --from=frontend-builder /frontend/dist/ ./static/
 
 # 设置 Chrome 环境变量
 ENV CHROME_BIN=/usr/bin/google-chrome-stable

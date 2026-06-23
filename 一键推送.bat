@@ -9,24 +9,22 @@ set GIT="C:\Users\86184\.workbuddy\vendor\PortableGit\bin\git.exe"
 
 echo [Step 1/2] Commit changes...
 %GIT% add -A 2>nul
-%GIT% commit -m "v6.14: Competitor Monitor + WeChat Push + Auto-build Dockerfile" 2>nul
+%GIT% commit -m "v6.14: dockerfile fix" 2>nul
 
 echo.
 echo [Step 2/2] Pushing to GitHub...
-echo If prompted, enter your GitHub username and Personal Access Token
-echo.
 %GIT% push origin master
 if %ERRORLEVEL% EQU 0 (
     echo.
     echo ============================================
     echo    Success! Render will auto-deploy
-echo    Wait 5-10 minutes then refresh website
-echo ============================================
+    echo    Wait 5-10 minutes then refresh website
+    echo ============================================
 ) else (
     echo.
     echo ============================================
-    echo    Push failed. Use GitHub Desktop instead:
-    echo    Open GitHub Desktop --^> Click "Push origin"
+    echo    Push failed. Run in terminal:
+    echo    cd hotspot-v3 ^&^& git push origin master
     echo ============================================
 )
 echo.
