@@ -36,7 +36,7 @@ from pydantic import BaseModel
 from services.data_sources import DataAggregator
 from services.ai_analyzer import AIAnalyzer
 from services.app_store_scraper import AppStoreScraper
-from models.topic import HotspotTopic, FilterParams, TopicListResponse
+from models.topic import HotspotTopic, TopicListResponse
 
 
 # ============ FastAPI 应用 ============
@@ -428,6 +428,11 @@ async def get_app_store_top20(
         entry["alert_level"] = chg.get("alert_level", "none")
         entry["changes"] = chg.get("changes", [])
         entry["rank_previous"] = chg.get("rank_previous")
+        # 提取排名变动数值（用于前端增长分析展示）
+        for c in chg.get("changes", []):
+            if c.get("type") == "rank_change":
+                entry["rank_change"] = c.get("rank_delta", 0)
+                break
         enriched.append(entry)
 
     # 排序
@@ -689,7 +694,50 @@ async def get_app_ads(app_id: str, country: str = Query("US")):
         except Exception as e:
             print(f"[AppAds] Meta API error: {e}")
 
-    # ===== 4. 来源3：Google Play 宣传视频 + 截图 =====
+    # ===== 3.5 来源3：Google Ads Transparency Center（完全免费）=====
+    google_ads_count = 0
+    try:
+        from services.google_ads_scraper import search_google_ads
+        # 简化搜索词（去掉副标题），提高匹配率
+        ga_search_name = app_name.split(":")[0].split("-")[0].strip()
+        google_ads = search_google_ads(ga_search_name, country=country, limit=8)
+        for ad in google_ads:
+            video_ads.append({
+                "ad_id": ad.get("ad_id", ""),
+                "source": "google_ads",
+                "source_icon": "🔍",
+                "source_label_zh": "Google Ads 透明度中心",
+                "source_label_en": "Google Ads Transparency",
+                "platform_label_zh": ad.get("platform_label_zh", "Google Ads"),
+                "platform_label_en": ad.get("platform_label_en", "Google Ads"),
+                "platform_color": "#34A853",
+                "title_zh": ad.get("title_zh", ""),
+                "title_en": ad.get("title_en", ""),
+                "body_zh": ad.get("body_zh", ""),
+                "body_en": ad.get("body_en", ""),
+                "thumbnail_url": ad.get("thumbnail_url", ""),
+                "snapshot_url": ad.get("snapshot_url", ""),
+                "video_url": ad.get("video_url"),
+                "video_id": ad.get("video_id"),
+                "is_video": ad.get("is_video", False),
+                "creative_type": ad.get("creative_type", "AD"),
+                "creative_type_zh": ad.get("creative_type_zh", "Google广告"),
+                "first_seen": ad.get("first_seen", ""),
+                "last_seen": ad.get("last_seen", "投放中"),
+                "is_real": True,
+                "external_url": ad.get("external_url", ""),
+                "times_shown": ad.get("times_shown", ""),
+            })
+        google_ads_count = len(google_ads)
+        if google_ads:
+            ad_sources.append({"name": "Google Ads", "icon": "🔍", "count": len(google_ads), "color": "#34A853"})
+            print(f"[AppAds] Google Ads Transparency: {len(google_ads)} ads for {app_name}")
+    except ImportError as e:
+        print(f"[AppAds] Google Ads scraper import error: {e}")
+    except Exception as e:
+        print(f"[AppAds] Google Ads error: {e}")
+
+    # ===== 4. 来源4：Google Play 宣传视频 + 截图 =====
     gp_video_url = None
     gp_video_thumb = None
     gp_video_title = ""

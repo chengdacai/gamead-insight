@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts'
 
-const API_BASE = window.location.hostname === 'localhost' ? '/api' : '/api'
+const API_BASE = '/api'
 
 const PLATFORM_COLORS = {
   reddit_hot: '#FF4500', twitter_trend: '#1DA1F2', tiktok_trend: '#FF0050',
@@ -15,18 +15,35 @@ export default function Dashboard() {
   const [appstore, setAppstore] = useState(null)
   const [changes, setChanges] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true)
+    setError(null)
     Promise.all([
-      fetch(`${API_BASE}/stats`).then(r => r.json()),
-      fetch(`${API_BASE}/appstore/top20`).then(r => r.json()),
-      fetch(`${API_BASE}/appstore/changes`).then(r => r.json()),
+      fetch(`${API_BASE}/stats`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }),
+      fetch(`${API_BASE}/appstore/top20`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }),
+      fetch(`${API_BASE}/appstore/changes`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }),
     ]).then(([s, a, c]) => {
       setStats(s)
       setAppstore(a)
       setChanges(c.changes?.filter(x => x.has_changes) || [])
-    }).catch(() => {}).finally(() => setLoading(false))
-  }, [])
+    }).catch(err => setError(err.message)).finally(() => setLoading(false))
+  }
+
+  useEffect(() => { fetchData() }, [])
+
+  if (error) return (
+    <div className="empty-state">
+      <div className="empty-icon">⚠</div>
+      <div className="empty-text-zh">数据加载失败</div>
+      <div className="empty-text-en">Failed to load data</div>
+      <div style={{fontSize:11,color:'var(--text-muted)',margin:'8px 0'}}>{error}</div>
+      <button className="btn primary small" onClick={fetchData} style={{marginTop:12}}>
+        重试 / Retry
+      </button>
+    </div>
+  )
 
   if (loading) return <div className="empty-state"><div className="empty-icon">◆</div><div className="empty-text-zh">加载中...</div><div className="empty-text-en">Loading...</div></div>
 

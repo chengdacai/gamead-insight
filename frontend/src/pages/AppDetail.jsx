@@ -208,11 +208,17 @@ export default function AppDetail() {
                     key={ad.ad_id || i}
                     className="ad-video-card"
                     onClick={() => {
+                      // 🔗 外部链接（Google Ads透明度中心等）— 新标签页打开
+                      if (ad.external_url && !ad.is_video && !ad.video_id && !ad.snapshot_url) {
+                        window.open(ad.external_url, '_blank', 'noopener,noreferrer')
+                        return
+                      }
                       if (ad.is_video || ad.video_id || ad.video_url) setActiveVideo(ad)
                       else if (ad.snapshot_url) setActiveVideo(ad)
+                      else if (ad.external_url) window.open(ad.external_url, '_blank', 'noopener,noreferrer')
                     }}
                     style={{
-                      cursor: (ad.is_video || ad.snapshot_url) ? 'pointer' : 'default',
+                      cursor: (ad.is_video || ad.snapshot_url || ad.external_url) ? 'pointer' : 'default',
                       borderColor: ad.platform_color ? `${ad.platform_color}40` : undefined,
                     }}
                   >
@@ -222,7 +228,7 @@ export default function AppDetail() {
                         <img src={ad.thumbnail_url} alt={ad.title_zh || ad.title_en} loading="lazy" />
                       ) : (
                         <div className="app-icon-placeholder" style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
-                          <span style={{fontSize:28}}>🎬</span>
+                          <span style={{fontSize:28}}>{ad.creative_type === 'LINK' ? '🔍' : '🎬'}</span>
                         </div>
                       )}
                       {/* 播放按钮 — 只有可播放的视频才显示 */}
@@ -234,11 +240,22 @@ export default function AppDetail() {
                           </svg>
                         </div>
                       )}
+                      {/* 外部链接按钮 — Google Ads等 */}
+                      {ad.creative_type === 'LINK' && ad.external_url && !ad.is_video && (
+                        <div className="ad-play-btn" style={{background:'rgba(52,168,83,0.15)'}}>
+                          <svg width="40" height="40" viewBox="0 0 36 36" fill="none">
+                            <circle cx="18" cy="18" r="18" fill="rgba(52,168,83,0.8)"/>
+                            <path d="M14 12h10v10M24 12L12 24" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                      )}
                       {/* 类型标签 */}
                       <span className="ad-type-badge" style={{
-                        background: ad.is_video ? 'rgba(255,92,114,0.85)' : 'rgba(79,140,255,0.85)',
+                        background: ad.creative_type === 'LINK'
+                          ? 'rgba(52,168,83,0.85)'
+                          : ad.is_video ? 'rgba(255,92,114,0.85)' : 'rgba(79,140,255,0.85)',
                       }}>
-                        {ad.is_video ? '▶ VIDEO' : '📷 IMAGE'}
+                        {ad.creative_type === 'LINK' ? '🔗 查看' : ad.is_video ? '▶ VIDEO' : '📷 IMAGE'}
                       </span>
                     </div>
                     {/* 信息区 */}

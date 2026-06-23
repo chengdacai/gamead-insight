@@ -12,7 +12,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 
-const API = "";
+const API = "/api";
 
 /* ─── Insightrackr 风格：应用类型（应用 / 游戏） ─── */
 const APP_TYPES = [
@@ -73,7 +73,7 @@ const COUNTRIES = [
 ];
 
 /* ═══════════════════ 单个 App 卡片行（Insightrackr 风格） ═══════════════════ */
-function AppCard({ app, index, onClick }) {
+function AppCard({ app, index, onClick, showGrowth }) {
   const rank = app.rank ?? index + 1;
   const name = app.name || app.id || "未知应用";
   const dev = app.developer || app.store || "";
@@ -82,9 +82,9 @@ function AppCard({ app, index, onClick }) {
   const isTop3 = rank <= 3;
 
   return (
-    <div className="app-card-row" onClick={() => onClick?.(app)} role="button" tabIndex={0}>
+    <div className="sr-card-row" onClick={() => onClick?.(app)} role="button" tabIndex={0}>
       {/* 排名号 */}
-      <span className={`app-rank ${isTop3 ? "rank-top3" : ""}`}>{rank}</span>
+      <span className={`sr-rank ${isTop3 ? "rank-top3" : ""}`}>{rank}</span>
 
       {/* 大图标 */}
       <div className="app-icon-wrap">
@@ -97,12 +97,27 @@ function AppCard({ app, index, onClick }) {
       </div>
 
       {/* 名称 + 开发商 + 评分 */}
-      <div className="app-info">
-        <div className="app-name">{name}</div>
-        <div className="app-dev">{dev}</div>
+      <div className="sr-info">
+        <div className="sr-name">{name}</div>
+        <div className="sr-dev">{dev}</div>
         {rating > 0 && (
           <div className="app-rating">
             <span className="star">&#9733;</span> {rating.toFixed(1)}
+          </div>
+        )}
+        {/* 增长分析：排名变动指示器 */}
+        {showGrowth && app.rank_change !== undefined && app.rank_change !== 0 && (
+          <div style={{
+            fontSize: 11, fontWeight: 600, marginTop: 2,
+            color: app.rank_change > 0 ? 'var(--green)' : 'var(--red)',
+            fontFamily: 'var(--font-en)'
+          }}>
+            {app.rank_change > 0 ? '↑' : '↓'} {Math.abs(app.rank_change)}
+          </div>
+        )}
+        {showGrowth && app.has_changes && !app.rank_change && (
+          <div style={{fontSize:10,color:'var(--orange)',marginTop:2}}>
+            ● 有变更 / Changed
           </div>
         )}
       </div>
@@ -310,7 +325,7 @@ export default function StoreRanking() {
               <div className="empty-state"><p>暂无数据</p></div>
             ) : (
               data.map((app, idx) => (
-                <AppCard key={app.app_id || app.id || idx} app={app} index={idx} onClick={handleAppClick} />
+                <AppCard key={app.app_id || app.id || idx} app={app} index={idx} onClick={handleAppClick} showGrowth={showGrowth} />
               ))
             )}
           </div>
@@ -336,7 +351,7 @@ export default function StoreRanking() {
               </div>
             ) : (
               dataPaid.map((app, idx) => (
-                <AppCard key={app.app_id || app.id || idx} app={app} index={idx} onClick={handleAppClick} />
+                <AppCard key={app.app_id || app.id || idx} app={app} index={idx} onClick={handleAppClick} showGrowth={showGrowth} />
               ))
             )}
           </div>

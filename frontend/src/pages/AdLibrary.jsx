@@ -13,7 +13,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 
-const API = "";
+const API = "/api";
 
 export default function AdLibrary() {
   const navigate = useNavigate();
@@ -42,20 +42,26 @@ export default function AdLibrary() {
           setError(`🆕 ${query} 有 ${res.data.new_count} 条新广告！ / ${res.data.new_count} new ads detected!`);
         }
       } else if (platform === "google") {
-        // Google Ads Transparency Center 引导链接
+        // Google Ads Transparency Center — 引导链接（无需API Token）
+        const searchUrl = `https://adstransparency.google.com/?region=anywhere&advertiser_name=${encodeURIComponent(query)}`;
         results = [{
-          ad_id:       "google_placeholder",
+          ad_id:       "google_transparency",
           advertiser:   query,
-          title:        "请访问 Google 广告透明度中心查看",
-          title_en:     "Visit Google Ads Transparency Center",
-          body:        `Google Ads Transparency Center 数据需通过网页查看。`,
-          body_en:      "Google Ads Transparency Center data requires web access.",
-          snapshot_url: `https://adstransparency.google.com/?hl=en&type=ADS&query=${encodeURIComponent(query)}`,
-          platforms_zh: ["Google Search", "YouTube"],
-          first_seen:   "",
-          last_seen:    "",
-          creative_type_zh: "图片/视频",
+          title:        `在 Google 广告透明度中心查看「${query}」的广告`,
+          title_en:     `View "${query}" ads on Google Ads Transparency Center`,
+          body:         "Google 免费提供所有广告主的素材库。点击卡片在新标签页打开。",
+          body_en:      "Google provides free access to all advertiser creatives. Click to open in new tab.",
+          thumbnail_url: null,
+          video_url:    null,
+          snapshot_url: searchUrl,
+          external_url: searchUrl,
+          platforms_zh: ["Google Search", "YouTube", "Display"],
+          creative_type_zh: "全部格式",
+          is_video:     false,
           is_placeholder: true,
+          source:       "google_ads",
+          action_hint_zh: "🔗 在新标签页查看",
+          action_hint_en: "🔗 Open in new tab",
         }];
       } else {
         // 仅支持 Meta 和 Google

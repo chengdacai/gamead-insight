@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 
-const API_BASE = window.location.hostname === 'localhost' ? '/api' : '/api'
+const API_BASE = '/api'
 
 const PLATFORM_COLORS = {
   reddit_hot: '#FF4500', twitter_trend: '#1DA1F2', tiktok_trend: '#FF0050',
@@ -21,17 +21,19 @@ export default function Trends() {
   const [platform, setPlatform] = useState('overall')
   const [sortBy, setSortBy] = useState('heat_score')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [platforms, setPlatforms] = useState({})
 
   const fetchData = () => {
     setLoading(true)
+    setError(null)
     const url = platform === 'overall'
       ? `${API_BASE}/rankings?limit=50&sort_by=${sortBy}`
       : `${API_BASE}/rankings/${platform}?limit=50&sort_by=${sortBy}`
     fetch(url)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
       .then(d => setTopics(d.rankings || d.topics || []))
-      .catch(() => {})
+      .catch(err => setError(err.message))
       .finally(() => setLoading(false))
   }
 
@@ -136,7 +138,17 @@ export default function Trends() {
       </div>
 
       {/* Topics Grid */}
-      {loading ? (
+      {error ? (
+        <div className="empty-state">
+          <div className="empty-icon">⚠</div>
+          <div className="empty-text-zh">数据加载失败</div>
+          <div className="empty-text-en">Failed to load data</div>
+          <div style={{fontSize:11,color:'var(--text-muted)',margin:'8px 0'}}>{error}</div>
+          <button className="btn primary small" onClick={fetchData} style={{marginTop:12}}>
+            重试 / Retry
+          </button>
+        </div>
+      ) : loading ? (
         <div className="empty-state"><div className="empty-icon">✦</div><div className="empty-text-zh">加载中...</div><div className="empty-text-en">Loading...</div></div>
       ) : topics.length === 0 ? (
         <div className="empty-state"><div className="empty-icon">✦</div><div className="empty-text-zh">暂无数据</div><div className="empty-text-en">No data available</div></div>
