@@ -1,10 +1,8 @@
 """
-通知渠道服务 v2.0
+通知渠道服务 v2.1
 
-支持的渠道：
-1. 企业微信应用消息 — WeCom App Message API (corpid + agentid + secret)
-2. 企业微信机器人 — 群机器人 Webhook (备用)
-3. Server酱 (sct.ftqq.com) — 普通微信用户可用，扫码关注公众号即可
+唯一推送渠道：企业微信应用消息 — WeCom App Message API (corpid + agentid + secret)
+消息直接推送到用户的企业微信消息列表，无需群聊，无需机器人。
 
 使用方式：
     from services.notification_service import push_notification
@@ -236,15 +234,9 @@ def push_notification(title: str, body: str, channels: list[str] = None) -> dict
 
     if channels is None:
         channels = []
-        # 优先使用企业微信应用（最可靠）
+        # 仅使用企业微信应用消息
         if notify["wecom_app"]["enabled"] and notify["wecom_app"]["configured"]:
             channels.append("wecom_app")
-        # 备用企业微信 Webhook
-        if notify["wecom"]["enabled"] and notify["wecom"]["webhooks"]:
-            channels.append("wecom_webhook")
-        # Server酱
-        if notify["serverchan"]["enabled"] and notify["serverchan"]["send_keys"]:
-            channels.append("serverchan")
 
     # 企业微信应用消息
     if "wecom_app" in channels and notify["wecom_app"]["enabled"]:

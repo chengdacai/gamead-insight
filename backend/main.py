@@ -1104,7 +1104,7 @@ async def api_test_push(channel: str = Query(None, description="渠道: wecom | 
     from services.notification_service import test_push as do_test_push
     result = do_test_push(channel)
     if result.get("total_targets", 0) == 0:
-        raise HTTPException(status_code=400, detail="未配置任何通知渠道。请先在设置中添加企业微信 Webhook 或 Server酱 SendKey。")
+        raise HTTPException(status_code=400, detail="未配置企业微信应用。请先在设置中填入企业ID + AgentId + Secret。")
 
     return {
         "status": "sent" if result.get("success_targets", 0) > 0 else "failed",
