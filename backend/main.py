@@ -997,8 +997,8 @@ class WatchAppRequest(BaseModel):
 
 
 class MonitorSettingsRequest(BaseModel):
-    wecom_webhook: str = ""
-    check_interval_hours: int = 6
+    wecom_webhooks: list[str] = []
+    check_interval_hours: int = 1
     notify_new_ads: bool = True
     notify_screenshot_changes: bool = True
 
@@ -1093,27 +1093,32 @@ async def api_update_settings(settings: MonitorSettingsRequest):
 
 @app.post("/api/monitor/test-push")
 async def api_test_push():
-    """测试微信推送"""
-    settings = get_monitor_settings()
-    webhook = settings.get("wecom_webhook", "")
-    if not webhook:
+    """测试微信推送（推送到所有已配置的 Webhook）"""
+    from services.competitor_monitor import _get_webhook_urls, push_wecom_notification
+    webhooks = _get_webhook_urls()
+    if not webhooks:
         raise HTTPException(status_code=400, detail="未配置企业微信 Webhook URL。请先在设置中添加。")
 
-    from services.competitor_monitor import push_wecom_notification
-    test_result = push_wecom_notification(
+    push_result = push_wecom_notification(
         app_name="GameAd Insight",
         app_id="test",
         detections={
             "has_new": True,
             "total_new_ads": 1,
             "details": [
-                {"type": "new_ad", "source": "🧪 测试", "title": "这是一条测试消息，说明你的企业微信机器人配置正确！"}
+                {"type": "new_ad", "source": "🧪 测试消息 / Test", "title": "企业微信机器人配置正确！WeCom bot configured correctly!"}
             ]
         },
-        webhook_url=webhook
+        webhook_urls=webhooks
     )
 
-    return {"status": "sent" if test_result else "failed", "webhook_configured": True}
+    return {
+        "status": "sent" if push_result.get("success", 0) > 0 else "failed",
+        "total_webhooks": push_result.get("total", 0),
+        "success": push_result.get("success", 0),
+        "failed": push_result.get("failed", 0),
+        "results": push_result.get("results", []),
+    }
 
 
 @app.get("/api/monitor/search")

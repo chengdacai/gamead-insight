@@ -8,11 +8,13 @@ export default function CompetitorWatch() {
   const [error, setError] = useState(null)
   const [monitorStatus, setMonitorStatus] = useState({})
   const [showSettings, setShowSettings] = useState(false)
-  const [settings, setSettings] = useState({ wecom_webhook: '', check_interval_hours: 1 })
+  const [settings, setSettings] = useState({ wecom_webhooks: [], check_interval_hours: 1 })
+  const [newWebhookUrl, setNewWebhookUrl] = useState('')
   const [savingSettings, setSavingSettings] = useState(false)
   const [checkingAll, setCheckingAll] = useState(false)
   const [checkResult, setCheckResult] = useState(null)
   const [testPushResult, setTestPushResult] = useState(null)
+  const [addedMsg, setAddedMsg] = useState(null)  // 添加后的即时反馈
 
   // 搜索
   const [searchQuery, setSearchQuery] = useState('')
@@ -86,10 +88,21 @@ export default function CompetitorWatch() {
           country: 'US',
         }),
       })
+      const data = await r.json()
       if (r.ok) {
         loadWatchlist()
-        // 从搜索结果中移除
-        setSearchResults(prev => prev.filter(s => s.id !== app.id))
+        // 显示初始检查结果
+        const ic = data.initial_check
+        if (ic && ic.detections) {
+          setAddedMsg({
+            name: app.name,
+            total_ads: ic.detections.is_first_check ? (data.app?.last_ad_count || 0) : 0,
+            sources: data.app?.ad_stats || {},
+            isFirst: true,
+          })
+          setTimeout(() => setAddedMsg(null), 8000)
+        }
+        setSearchResults(prev => prev.filter(s => (s.app_id || s.id) !== (app.app_id || app.id)))
       }
     } catch (e) {
       console.error('Add watch failed:', e)
@@ -120,6 +133,17 @@ export default function CompetitorWatch() {
     } finally {
       setCheckingAll(false)
     }
+  }
+
+  const handleAddWebhook = () => {
+    if (!newWebhookUrl.trim()) return
+    if (settings.wecom_webhooks?.includes(newWebhookUrl.trim())) return
+    setSettings({ ...settings, wecom_webhooks: [...(settings.wecom_webhooks || []), newWebhookUrl.trim()] })
+    setNewWebhookUrl('')
+  }
+
+  const handleRemoveWebhook = (url) => {
+    setSettings({ ...settings, wecom_webhooks: (settings.wecom_webhooks || []).filter(u => u !== url) })
   }
 
   const handleSaveSettings = async () => {
@@ -231,6 +255,19 @@ export default function CompetitorWatch() {
         </div>
       )}
 
+      {/* 添加成功反馈 */}
+      {addedMsg && (
+        <div className="watch-added-msg">
+          <span className="added-icon">✅</span>
+          <span className="added-text"><strong>{addedMsg.name}</strong> 已加入监控</span>
+          <span className="added-detail">
+            {addedMsg.isFirst
+              ? `基线已建立 (GP视频 ${addedMsg.sources?.gp_video || 0} · GoogleAds ${addedMsg.sources?.google_ads || 0} · YouTube ${addedMsg.sources?.youtube || 0})`
+              : `当前 ${addedMsg.total_ads} 条广告素材`}
+          </span>
+        </div>
+      )}
+
       {/* 操作栏 */}
       <div className="watch-actions-bar">
         <button className="btn btn-check-all" onClick={handleCheckAll} disabled={checkingAll}>
@@ -312,9 +349,17 @@ export default function CompetitorWatch() {
                     {app.platform === 'google_play' ? '📱 Google Play' : '🍎 App Store'}
                   </div>
                   <div className="watch-card-stats">
-                    <span>📊 {app.total_alerts || 0} 次提醒</span>
+                    <span title="GP视频/GoogleAds/YouTube/截图">📊 {app.last_ad_count || 0} 条素材</span>
                     <span>📅 {app.last_checked ? new Date(app.last_checked).toLocaleDateString('zh-CN') : '未检查'}</span>
                   </div>
+                  {app.ad_stats && (app.ad_stats.gp_video > 0 || app.ad_stats.google_ads > 0 || app.ad_stats.youtube > 0) && (
+                    <div className="watch-card-ad-breakdown">
+                      {app.ad_stats.gp_video > 0 && <span title="GP商店视频">▶{app.ad_stats.gp_video}</span>}
+                      {app.ad_stats.google_ads > 0 && <span title="Google Ads">📢{app.ad_stats.google_ads}</span>}
+                      {app.ad_stats.youtube > 0 && <span title="YouTube">🎬{app.ad_stats.youtube}</span>}
+                      {app.ad_stats.app_store_ss > 0 && <span title="App Store截图">🖼{app.ad_stats.app_store_ss}</span>}
+                    </div>
+                  )}
                   {app.total_alerts > 0 && (
                     <div className="watch-card-alert-badge">🔔 有新动态</div>
                   )}
@@ -357,6 +402,8 @@ export default function CompetitorWatch() {
                       {r.error ? `❌ ${r.error}` :
                        r.detections?.has_new ?
                         `🆕 ${r.detections.total_new_ads} 个新内容, ${r.detections.total_new_screenshots} 张新截图` :
+                       r.detections?.is_first_check ?
+                        '📸 首次检查，已建立基线快照' :
                         '✓ 无变化'}
                       {r.pushed && ' 📨 已推送微信'}
                     </div>
@@ -391,21 +438,38 @@ export default function CompetitorWatch() {
 
             <div className="settings-field">
               <label>
-                <span className="label-zh">企业微信机器人 Webhook</span>
+                <span className="label-zh">企业微信机器人 Webhook (可添加多个群)</span>
+                <span className="label-en">WeCom Bot Webhooks (multiple groups)</span>
               </label>
-              <textarea
-                rows="3"
-                placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_KEY"
-                value={settings.wecom_webhook}
-                onChange={e => setSettings({...settings, wecom_webhook: e.target.value})}
-              />
+              <div className="webhook-list">
+                {(settings.wecom_webhooks || []).map((url, i) => (
+                  <div className="webhook-item" key={i}>
+                    <span className="webhook-url" title={url}>{url.substring(0, 60)}...</span>
+                    <button className="btn btn-remove-webhook" onClick={() => handleRemoveWebhook(url)}>✕</button>
+                  </div>
+                ))}
+              </div>
+              <div className="webhook-add-row">
+                <input
+                  type="text"
+                  placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=..."
+                  value={newWebhookUrl}
+                  onChange={e => setNewWebhookUrl(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddWebhook()}
+                />
+                <button className="btn btn-add-webhook" onClick={handleAddWebhook}>+ 添加</button>
+              </div>
+              <div className="webhook-count">
+                已配置 {(settings.wecom_webhooks || []).length} 个群机器人
+              </div>
               <div className="field-hint">
                 <details>
-                  <summary>如何获取 Webhook URL？</summary>
+                  <summary>如何获取 Webhook URL？/ How to get Webhook URL?</summary>
                   <div className="hint-detail">
-                    <p>① 企业微信 → 群聊 → 右上角「...」→ 「群机器人」→ 「添加」</p>
-                    <p>② 复制 Webhook 地址粘贴到上方</p>
-                    <p>③ 可创建只有自己的群聊接收通知</p>
+                    <p><strong>①</strong> 打开企业微信 → 任意群聊 → 右上角「···」→ 「群机器人」→ 「添加机器人」</p>
+                    <p><strong>②</strong> 复制 Webhook 地址，粘贴到上方输入框，点击"+ 添加"</p>
+                    <p><strong>③</strong> 可重复添加多个群的机器人，推送时会同时通知所有群</p>
+                    <p><strong>④</strong> 建议创建一个"竞品监控"专用群聊，只拉自己和机器人</p>
                   </div>
                 </details>
               </div>
@@ -421,9 +485,9 @@ export default function CompetitorWatch() {
               </button>
               {testPushResult && (
                 <span className={`test-result ${testPushResult.status === 'sent' ? 'success' : 'fail'}`}>
-                  {testPushResult.status === 'sent' ? '✅ 推送成功！请检查企业微信' :
-                   testPushResult.status === 'error' ? `❌ ${testPushResult.message}` :
-                   '❌ 推送失败，请检查 Webhook URL'}
+                  {testPushResult.status === 'sent'
+                    ? `✅ 推送成功！${testPushResult.success}/${testPushResult.total_webhooks} 个群已收到`
+                    : `❌ 推送失败: ${testPushResult.detail || '请检查 Webhook URL'}`}
                 </span>
               )}
               <div className="settings-buttons-right">

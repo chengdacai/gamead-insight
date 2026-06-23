@@ -1776,6 +1776,112 @@ body {
   border: none !important;
 }
 
+/* 多Webhook管理 */
+.webhook-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.webhook-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.webhook-url {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-remove-webhook {
+  background: transparent !important;
+  border: none !important;
+  color: var(--red) !important;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px !important;
+}
+
+.webhook-add-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.webhook-add-row input {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.btn-add-webhook {
+  background: var(--accent-color) !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 8px 14px !important;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.webhook-count {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+/* 添加成功即时反馈 */
+.watch-added-msg {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 214, 143, 0.1);
+  border: 1px solid rgba(0, 214, 143, 0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+.added-icon { font-size: 20px; }
+.added-text { color: var(--green); font-size: 14px; }
+.added-detail {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+/* 广告渠道明细 */
+.watch-card-ad-breakdown {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.watch-card-ad-breakdown span {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  background: rgba(255,255,255,0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: default;
+}
+
 /* 响应式 */
 @media (max-width: 768px) {
   .watch-status-bar {
