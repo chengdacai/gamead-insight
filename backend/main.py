@@ -563,6 +563,91 @@ async def get_google_play_app_detail(app_id: str, country: str = Query("US")):
 
 # ============ Meta 广告库 API ============
 
+# ============ App 专属广告素材 API ============
+
+@app.get("/api/appstore/app/{app_id}/ads")
+async def get_app_ads(app_id: str, country: str = Query("US")):
+    """获取某个 App 的真实视频广告素材（来自 Meta Ad Library）"""
+    import httpx
+    from services.meta_ad_library import search_ads_by_advertiser
+    from services.app_store_scraper import AppStoreScraper
+
+    # 获取 App 名称
+    app_name = ""
+    developer = ""
+    screenshots = []
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(f"https://itunes.apple.com/lookup?id={app_id}")
+            result = resp.json()
+            if result.get("results"):
+                r = result["results"][0]
+                app_name = r.get("trackName", "")
+                developer = r.get("artistName", "")
+                screenshots = r.get("screenshotUrls", [])[:8]
+    except Exception as e:
+        print(f"[AppAds] iTunes Lookup 失败: {e}")
+
+    if not app_name:
+        # 从缓存中查找
+        apps, _ = _refresh_app_store()
+        for a in apps:
+            if a.get("app_id") == app_id:
+                app_name = a.get("name", "")
+                developer = a.get("developer", "")
+                screenshots = a.get("screenshots", [])
+                break
+
+    if not app_name:
+        raise HTTPException(status_code=404, detail=f"App {app_id} not found")
+
+    # 尝试从 Meta Ad Library 获取真实广告
+    meta_token = os.getenv("META_AD_API_TOKEN", "")
+    ads = search_ads_by_advertiser(
+        advertiser_name=app_name,
+        country=country,
+        limit=12,
+        use_api=bool(meta_token),
+        api_token=meta_token if meta_token else None,
+    )
+
+    # 如果 Meta 无数据，用截图生成广告预览卡片
+    is_real_ads = not any(a.get("is_placeholder") for a in ads)
+    if not is_real_ads and screenshots:
+        ad_previews = []
+        for i, url in enumerate(screenshots[:8]):
+            ad_previews.append({
+                "ad_id": f"screenshot_{app_id}_{i}",
+                "advertiser": developer or app_name,
+                "title": f"{app_name} - 截图 #{i+1}",
+                "title_en": f"{app_name} - Screenshot #{i+1}",
+                "body": f"{app_name} 的 App Store 截图预览",
+                "body_en": f"App Store screenshot preview for {app_name}",
+                "thumbnail_url": url,
+                "video_url": None,
+                "snapshot_url": url,
+                "creative_type": "IMAGE",
+                "creative_type_zh": "截屏预览",
+                "platforms": [],
+                "platforms_zh": ["App Store 截图"],
+                "first_seen": "",
+                "last_seen": "",
+                "is_preview": True,
+            })
+        ads = ad_previews
+
+    return {
+        "app_id": app_id,
+        "app_name": app_name,
+        "developer": developer,
+        "country": country,
+        "total": len(ads),
+        "is_real_ads": is_real_ads,
+        "api_configured": bool(meta_token),
+        "ads": ads,
+    }
+
+
 @app.get("/api/meta/ads")
 async def get_meta_ads(
     advertiser: str = Query(..., description="广告主名称"),

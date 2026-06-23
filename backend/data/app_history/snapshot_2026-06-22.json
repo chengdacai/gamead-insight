@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-22T23:27:42.838584",
+  "timestamp": "2026-06-22T23:58:52.665011",
   "total": 20,
   "apps": [
     {
@@ -22,7 +22,7 @@
         "https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/95/09/07/950907e2-ac45-a8b7-0c03-205286094e51/d9785e78-5107-4258-9fa0-12499b83efba_Simulator_Screen_Shot_-_iPhone_8_Plus_-_2021-03-09_at_14.49.06.png/392x696bb.png"
       ],
       "rating": 4.48364,
-      "rating_count": 11951,
+      "rating_count": 11949,
       "bundle_id": "com.liguangming.Shadowrocket",
       "seller_url": "https://shadowlaunch.com/",
       "size_bytes": 53208064
@@ -283,8 +283,8 @@
       "version": "2.0",
       "description": "集中收納每一張卡的電信商、方案、號碼、到期日與花費。國旗卡面搭配電信商官方圖示，一眼看懂；到期前自動以通知、Telegram 或 Email 提醒，再也不怕忘記續約或漏掉到期。內建掃碼解析 LPA、產生安裝 QR Code、eSIM 與 MCC/MNC 查詢、多幣別資產統計、保號卡自動續期、應用鎖與桌面小工具。出行常備，保號不忘。",
       "screenshots": [],
-      "rating": 5.0,
-      "rating_count": 1,
+      "rating": 0.0,
+      "rating_count": 0,
       "bundle_id": "top.fooeahqms.SIMKit",
       "seller_url": "",
       "size_bytes": 48999424
@@ -415,8 +415,8 @@
         "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ed/8f/ae/ed8fae79-ca5a-6519-345e-6fcb08bbf30b/75b1a43d-4830-4001-8008-e18aa1ab3274_04.png/392x696bb.png",
         "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/a7/37/4a/a7374af2-493c-cbee-bb7a-64271ebccee6/a4a0cddd-68d4-4def-8db6-a872bfd34ec7_05.png/392x696bb.png"
       ],
-      "rating": 4.71176,
-      "rating_count": 170,
+      "rating": 4.71006,
+      "rating_count": 169,
       "bundle_id": "ai.devl.RenPySpark",
       "seller_url": "https://spark.devl.ai",
       "size_bytes": 664076288
@@ -440,8 +440,8 @@
         "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e8/6b/62/e86b62a3-17fa-73ec-7748-a129da5e27fe/IMG_9248.PNG/392x696bb.png",
         "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/60/0e/ce/600ece4b-943f-bf64-48c7-9adaaf164128/IMG_1596.PNG/392x696bb.png"
       ],
-      "rating": 4.81832,
-      "rating_count": 1354,
+      "rating": 4.81805,
+      "rating_count": 1352,
       "bundle_id": "com.crackedpixel.R8Companion",
       "seller_url": "https://crackedpixel.com",
       "size_bytes": 15444992

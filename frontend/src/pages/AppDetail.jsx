@@ -12,6 +12,11 @@ export default function AppDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // 广告素材相关状态
+  const [adData, setAdData] = useState(null)
+  const [adsLoading, setAdsLoading] = useState(true)
+  const [activeVideo, setActiveVideo] = useState(null) // 当前播放的视频广告
+
   useEffect(() => {
     setLoading(true)
     setError(null)
@@ -30,6 +35,15 @@ export default function AppDetail() {
         setError(err.message || '加载失败')
       })
       .finally(() => setLoading(false))
+
+    // 同时加载广告素材
+    setAdsLoading(true)
+    setAdData(null)
+    fetch(`${API_BASE}/appstore/app/${appId}/ads`)
+      .then(r => r.json())
+      .then(d => setAdData(d))
+      .catch(err => console.error('[AppDetail] 广告加载失败:', err))
+      .finally(() => setAdsLoading(false))
   }, [appId])
 
   if (loading) return <div className="empty-state"><div className="empty-icon">⬡</div><div className="empty-text-zh">加载中...</div><div className="empty-text-en">Loading app details...</div></div>
@@ -138,6 +152,141 @@ export default function AppDetail() {
                 <img src={url} alt={`Screenshot ${i+1}`} />
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Ad Video Materials - 视频广告素材 */}
+      <div className="card" style={{marginBottom:24}}>
+        <div className="card-header">
+          <div>
+            <div className="card-title-zh">
+              视频广告素材 / Ad Creative Videos
+              {adData && !adsLoading && (
+                <span style={{fontSize:11, marginLeft:8, color: adData.is_real_ads ? 'var(--green)' : 'var(--orange)'}}>
+                  {adData.is_real_ads ? '(真实数据 / Real Data)' : '(截图预览 / Screenshot Preview)'}
+                </span>
+              )}
+            </div>
+            <div className="card-title-en">
+              {adData?.app_name || app.name} — {adData?.total || 0} 条广告
+            </div>
+          </div>
+          {!adData?.is_real_ads && !adData?.api_configured && !adsLoading && (
+            <div className="card-badge warning" style={{maxWidth:200, textAlign:'right', lineHeight:1.4}}>
+              申请 Meta API Token 获取真实视频广告
+            </div>
+          )}
+        </div>
+
+        {adsLoading ? (
+          <div style={{textAlign:'center',padding:'30px 0',color:'var(--text-muted)'}}>
+            ⬡ 加载广告素材中... / Loading ads...
+          </div>
+        ) : !adData || adData.total === 0 ? (
+          <div style={{textAlign:'center',padding:'30px 0',color:'var(--text-muted)',lineHeight:1.8}}>
+            <div>暂无广告素材 / No ad creatives available</div>
+            {!adData?.api_configured && (
+              <div style={{marginTop:12, fontSize:12, maxWidth:500, margin:'12px auto 0', textAlign:'left', background:'rgba(255,159,67,0.08)', padding:16, borderRadius:12, border:'1px solid rgba(255,159,67,0.2)'}}>
+                <div style={{fontWeight:700, color:'var(--orange)', marginBottom:8}}>
+                  💡 如何获取真实视频广告？
+                </div>
+                <div style={{fontSize:11, color:'var(--text-secondary)'}}>
+                  1. 访问 <a href="https://www.facebook.com/ads/library/api/" target="_blank" rel="noreferrer" style={{color:'var(--accent)'}}>Meta Ad Library API</a> 申请免费 Token（审核约5-10天）<br/>
+                  2. 在项目 <code style={{background:'rgba(255,255,255,0.1)', padding:'2px 6px', borderRadius:4}}>.env</code> 中配置：<code style={{background:'rgba(255,255,255,0.1)', padding:'2px 6px', borderRadius:4}}>META_AD_API_TOKEN=你的Token</code><br/>
+                  3. 重新部署后即可显示真实广告视频
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="ad-video-grid">
+            {adData.ads.map((ad, i) => (
+              <div
+                key={ad.ad_id || i}
+                className="ad-video-card"
+                onClick={() => {
+                  if (ad.video_url || ad.snapshot_url) {
+                    setActiveVideo(ad)
+                  }
+                }}
+                style={{cursor: (ad.video_url || ad.snapshot_url) ? 'pointer' : 'default'}}
+              >
+                {/* 缩略图 */}
+                <div className="ad-video-thumb">
+                  {ad.thumbnail_url ? (
+                    <img src={ad.thumbnail_url} alt={ad.title} />
+                  ) : (
+                    <div className="app-icon-placeholder">🎬</div>
+                  )}
+                  <div className="ad-play-btn">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                      <circle cx="16" cy="16" r="16" fill="rgba(0,0,0,0.6)"/>
+                      <path d="M12 10l10 6-10 6V10z" fill="white"/>
+                    </svg>
+                  </div>
+                  {ad.creative_type === 'VIDEO' && (
+                    <span className="ad-type-badge">VIDEO</span>
+                  )}
+                </div>
+                {/* 信息 */}
+                <div className="ad-video-info">
+                  <div className="ad-video-title" title={ad.title}>{ad.title}</div>
+                  <div className="ad-video-platforms">
+                    {ad.platforms_zh?.map((p, j) => (
+                      <span key={j} className="platform-chip">{p}</span>
+                    ))}
+                    {(!ad.platforms_zh || ad.platforms_zh.length === 0) && (
+                      <span className="platform-chip">App Store</span>
+                    )}
+                  </div>
+                  {ad.first_seen && (
+                    <div className="ad-video-date">
+                      {ad.first_seen?.slice(0, 10)} ~ {ad.last_seen === '投放中' ? '投放中' : ad.last_seen?.slice(0, 10)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Video Player Modal */}
+      {activeVideo && (
+        <div className="video-modal-overlay" onClick={() => setActiveVideo(null)}>
+          <div className="video-modal" onClick={e => e.stopPropagation()}>
+            <div className="video-modal-header">
+              <div className="video-modal-title">{activeVideo.title}</div>
+              <button className="video-modal-close" onClick={() => setActiveVideo(null)}>✕</button>
+            </div>
+            <div className="video-modal-body">
+              {activeVideo.video_url ? (
+                <video
+                  controls
+                  autoPlay
+                  style={{width:'100%', maxHeight:'60vh', borderRadius:8, background:'#000'}}
+                  src={activeVideo.video_url}
+                  poster={activeVideo.thumbnail_url}
+                >
+                  您的浏览器不支持视频播放 / Your browser does not support video playback
+                </video>
+              ) : activeVideo.snapshot_url ? (
+                <img
+                  src={activeVideo.snapshot_url}
+                  alt={activeVideo.title}
+                  style={{width:'100%', maxHeight:'60vh', objectFit:'contain', borderRadius:8}}
+                />
+              ) : null}
+            </div>
+            <div className="video-modal-footer">
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                {activeVideo.body_en || activeVideo.title_en || ''}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                {activeVideo.platforms_zh?.join(' · ') || 'App Store'} · {activeVideo.first_seen?.slice(0, 10) || ''}
+              </div>
+            </div>
           </div>
         </div>
       )}
