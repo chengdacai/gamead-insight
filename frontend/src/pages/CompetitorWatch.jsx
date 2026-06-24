@@ -90,12 +90,12 @@ export default function CompetitorWatch() {
     doSearch(searchQuery, searchPlatform, null)
   }
 
-  // 点击开发者名称 → 搜索同作者所有App
+  // 点击开发者名称 → 搜索同作者所有App（尊重当前平台筛选）
   const handleSearchByDeveloper = (developerName) => {
     setSearchingDev(developerName)
     setSearchQuery('')
-    setSearchPlatform('all')  // 搜全部平台
-    doSearch(developerName, 'all', developerName)
+    // 使用当前选择的平台，而非强制 'all'
+    doSearch(developerName, searchPlatform || 'all', developerName)
   }
 
   // 清除开发者搜索模式
@@ -274,7 +274,14 @@ export default function CompetitorWatch() {
             <button
               key={opt.value}
               className={`platform-btn ${searchPlatform === opt.value ? 'active' : ''}`}
-              onClick={() => setSearchPlatform(opt.value)}
+              onClick={() => {
+                const newPlatform = opt.value
+                setSearchPlatform(newPlatform)
+                // 开发者搜索模式下，切换平台自动重新搜索
+                if (searchingDev) {
+                  doSearch(searchingDev, newPlatform, searchingDev)
+                }
+              }}
               title={opt.label}
               style={{
                 padding: '4px 10px',
@@ -292,7 +299,7 @@ export default function CompetitorWatch() {
             </button>
           ))}
         </div>
-        <button className="btn btn-search" onClick={handleSearch} disabled={searching || !!searchingDev}>
+        <button className="btn btn-search" onClick={() => searchingDev ? doSearch(searchingDev, searchPlatform, searchingDev) : handleSearch()} disabled={searching}>
           {searching ? '搜索中...' : '🔍 搜索'}
         </button>
       </div>
