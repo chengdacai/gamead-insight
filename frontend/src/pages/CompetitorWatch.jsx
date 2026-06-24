@@ -23,6 +23,8 @@ export default function CompetitorWatch() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const [searchResults, setSearchResults] = useState([])
+  const [searchPlatform, setSearchPlatform] = useState('all')  // 'all' | 'app_store' | 'google_play'
+  const [searchingDev, setSearchingDev] = useState(null)  // 当前正在搜哪个开发者（显示标签）
 
   // ============ 数据加载 ============
 
@@ -63,14 +65,16 @@ export default function CompetitorWatch() {
 
   // ============ 搜索竞品（后端统一搜索，全库不限于榜单）============
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return
+  const doSearch = async (query, platform, developer) => {
+    if (!query.trim()) return
     setSearching(true)
     setSearchResults([])
-    const term = encodeURIComponent(searchQuery.trim())
+    const term = encodeURIComponent(query.trim())
+    let url = `${API_BASE}/monitor/search?q=${term}&country=US&platform=${platform || 'all'}`
+    if (developer) url += `&developer=${encodeURIComponent(developer)}`
 
     try {
-      const r = await fetch(`${API_BASE}/monitor/search?q=${term}&country=US`)
+      const r = await fetch(url)
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
       const data = await r.json()
       setSearchResults(data.results || [])
@@ -80,6 +84,25 @@ export default function CompetitorWatch() {
       setTimeout(() => setActionError(null), 5000)
     }
     setSearching(false)
+  }
+
+  const handleSearch = () => {
+    doSearch(searchQuery, searchPlatform, null)
+  }
+
+  // 点击开发者名称 → 搜索同作者所有App
+  const handleSearchByDeveloper = (developerName) => {
+    setSearchingDev(developerName)
+    setSearchQuery('')
+    setSearchPlatform('all')  // 搜全部平台
+    doSearch(developerName, 'all', developerName)
+  }
+
+  // 清除开发者搜索模式
+  const clearDevSearch = () => {
+    setSearchingDev(null)
+    setSearchResults([])
+    setSearchQuery('')
   }
 
   // ============ 添加竞品 ============
@@ -224,15 +247,52 @@ export default function CompetitorWatch() {
 
       {/* 搜索添加竞品 */}
       <div className="watch-search-bar">
-        <input
-          type="text"
-          className="search-input"
-          placeholder="搜索竞品 App 名称或开发者..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSearch()}
-        />
-        <button className="btn btn-search" onClick={handleSearch} disabled={searching}>
+        {searchingDev ? (
+          /* 开发者搜索模式 */
+          <div className="search-dev-mode" style={{display:'flex',alignItems:'center',gap:8,flex:1,minWidth:0}}>
+            <span style={{fontSize:13,color:'var(--accent)',whiteSpace:'nowrap'}}>👤 同作者: </span>
+            <span style={{fontSize:13,fontWeight:600,color:'var(--text-primary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{searchingDev}</span>
+            <button onClick={clearDevSearch} style={{background:'none',border:'none',color:'var(--text-muted)',cursor:'pointer',fontSize:14,padding:'2px 6px'}} title="清除开发者筛选">✕</button>
+          </div>
+        ) : (
+          <input
+            type="text"
+            className="search-input"
+            placeholder="搜索竞品 App 名称或开发者..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSearch()}
+          />
+        )}
+        {/* 平台筛选 */}
+        <div className="search-platform-btns" style={{display:'flex',gap:4,flexShrink:0}}>
+          {[
+            { value: 'all', label: '全部', emoji: '🌐' },
+            { value: 'app_store', label: 'App Store', emoji: '🍎' },
+            { value: 'google_play', label: 'Google Play', emoji: '📱' },
+          ].map(opt => (
+            <button
+              key={opt.value}
+              className={`platform-btn ${searchPlatform === opt.value ? 'active' : ''}`}
+              onClick={() => setSearchPlatform(opt.value)}
+              title={opt.label}
+              style={{
+                padding: '4px 10px',
+                borderRadius: 6,
+                fontSize: 12,
+                border: `1px solid ${searchPlatform === opt.value ? 'var(--accent)' : 'var(--border-glass)'}`,
+                background: searchPlatform === opt.value ? 'var(--accent-glow)' : 'transparent',
+                color: searchPlatform === opt.value ? 'var(--accent)' : 'var(--text-muted)',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s',
+              }}
+            >
+              {opt.emoji} {opt.label}
+            </button>
+          ))}
+        </div>
+        <button className="btn btn-search" onClick={handleSearch} disabled={searching || !!searchingDev}>
           {searching ? '搜索中...' : '🔍 搜索'}
         </button>
       </div>
@@ -240,8 +300,16 @@ export default function CompetitorWatch() {
       {/* 搜索结果 */}
       {searchResults.length > 0 && (
         <div className="watch-search-results">
-          <div className="section-title">
-            搜索结果 / Search Results ({searchResults.length})
+          <div className="section-title" style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <span>
+              {searchingDev
+                ? <><span style={{color:'var(--accent)'}}>👤 同作者「{searchingDev}」</span> 的 App ({searchResults.length}个)</>
+                : <>搜索结果 / Search Results ({searchResults.length})</>
+              }
+            </span>
+            <span style={{fontSize:11,color:'var(--text-muted)'}}>
+              平台: {searchPlatform === 'all' ? '全部' : searchPlatform === 'app_store' ? '🍎 App Store' : '📱 Google Play'}
+            </span>
           </div>
           <div className="watch-search-grid">
             {searchResults.map((app) => (
@@ -353,6 +421,7 @@ export default function CompetitorWatch() {
         <>
           <div className="watch-grid-header">
             <h3 className="section-title">关注列表 / Watchlist ({watchlist.length})</h3>
+            <span style={{fontSize:11,color:'var(--text-muted)'}}>💡 点击开发者名称可搜索同作者所有App</span>
           </div>
           <div className="watch-grid">
             {watchlist.map((app) => (
@@ -366,7 +435,13 @@ export default function CompetitorWatch() {
                 </div>
                 <div className="watch-card-info">
                   <div className="watch-card-name" title={app.name}>{app.name}</div>
-                  <div className="watch-card-dev">{app.developer}</div>
+                  <div className="watch-card-dev" style={{cursor:'pointer',color:'var(--accent)',textDecoration:'underline',textUnderlineOffset:3}}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (app.developer) handleSearchByDeveloper(app.developer)
+                    }}
+                    title={`点击搜索 "${app.developer}" 的所有App`}
+                  >{app.developer}</div>
                   <div className="watch-card-platform">
                     {app.platform === 'google_play' ? '📱 Google Play' : '🍎 App Store'}
                   </div>

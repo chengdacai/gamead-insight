@@ -1120,57 +1120,82 @@ async def api_test_push(channel: str = Query(None, description="渠道: wecom | 
 async def api_search_apps(
     q: str = Query(..., min_length=1, description="搜索关键词"),
     country: str = Query("US"),
+    platform: str = Query("all", description="平台过滤: all / app_store / google_play"),
+    developer: str = Query(None, description="按开发者名称搜索同作者所有App"),
 ):
     """
     全局搜索 App（用于添加竞品）
     - App Store: iTunes Search API（全库搜索）
     - Google Play: google-play-scraper search()
     - 每次 1-2 次请求，不限于榜单/类别
+    - 支持 platform 过滤和 developer 同作者搜索
     """
     import httpx
     results = []
     term = q.strip()
 
+    # 如果指定了 developer 参数，用 developer 作为实际搜索词 + 附加字段
+    search_term = term
+    if developer:
+        # 同作者搜索：用 developer 名作为关键词
+        search_term = developer.strip()
+        term = developer.strip()  # 统一 term 用于后续
+
+    do_app_store = platform in ("all", "app_store")
+    do_google_play = platform in ("all", "google_play")
+
     # ===== App Store: iTunes Search API (全库，1 次请求) =====
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            url = f"https://itunes.apple.com/search?term={term}&entity=software&country={country}&limit=20"
-            resp = await client.get(url)
-            data = resp.json()
-            for a in data.get("results", []):
-                results.append({
-                    "app_id": str(a.get("trackId", "")),
-                    "name": a.get("trackName", ""),
-                    "developer": a.get("artistName", ""),
-                    "icon_url": a.get("artworkUrl100", ""),
-                    "platform": "app_store",
-                    "rating": a.get("averageUserRating", 0) or 0,
-                    "category": a.get("primaryGenreName", ""),
-                    "bundle_id": a.get("bundleId", ""),
-                })
-    except Exception as e:
-        print(f"[MonitorSearch] App Store fail: {e}")
+    if do_app_store:
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                url = f"https://itunes.apple.com/search?term={search_term}&entity=software&country={country}&limit=20"
+                resp = await client.get(url)
+                data = resp.json()
+                for a in data.get("results", []):
+                    # 同作者搜索时，严格匹配开发者名称
+                    if developer:
+                        artist = a.get("artistName", "")
+                        if artist.lower() != developer.lower():
+                            continue
+                    results.append({
+                        "app_id": str(a.get("trackId", "")),
+                        "name": a.get("trackName", ""),
+                        "developer": a.get("artistName", ""),
+                        "icon_url": a.get("artworkUrl100", ""),
+                        "platform": "app_store",
+                        "rating": a.get("averageUserRating", 0) or 0,
+                        "category": a.get("primaryGenreName", ""),
+                        "bundle_id": a.get("bundleId", ""),
+                    })
+        except Exception as e:
+            print(f"[MonitorSearch] App Store fail: {e}")
 
     # ===== Google Play: google-play-scraper search() =====
-    try:
-        from google_play_scraper import search as gp_search
-        gp_results = gp_search(term, n_hits=15, country=country.lower())
-        for a in gp_results:
-            app_id = a.get("appId") or ""
-            if not app_id:
-                continue  # 跳过无appId的结果
-            results.append({
-                "app_id": app_id,
-                "name": a.get("title", ""),
-                "developer": a.get("developer", ""),
-                "icon_url": a.get("icon", ""),
-                "platform": "google_play",
-                "rating": a.get("score", 0) or 0,
-                "category": a.get("genre", ""),
-                "bundle_id": app_id,
-            })
-    except Exception as e:
-        print(f"[MonitorSearch] Google Play fail: {e}")
+    if do_google_play:
+        try:
+            from google_play_scraper import search as gp_search
+            gp_results = gp_search(search_term, n_hits=15, country=country.lower())
+            for a in gp_results:
+                app_id = a.get("appId") or ""
+                if not app_id:
+                    continue
+                # 同作者搜索时，严格匹配开发者名称
+                if developer:
+                    dev = a.get("developer", "")
+                    if dev.lower() != developer.lower():
+                        continue
+                results.append({
+                    "app_id": app_id,
+                    "name": a.get("title", ""),
+                    "developer": a.get("developer", ""),
+                    "icon_url": a.get("icon", ""),
+                    "platform": "google_play",
+                    "rating": a.get("score", 0) or 0,
+                    "category": a.get("genre", ""),
+                    "bundle_id": app_id,
+                })
+        except Exception as e:
+            print(f"[MonitorSearch] Google Play fail: {e}")
 
     # 去重
     seen = set()
@@ -1181,7 +1206,13 @@ async def api_search_apps(
             seen.add(key)
             deduped.append(r)
 
-    return {"query": q, "total": len(deduped), "results": deduped[:20]}
+    return {
+        "query": q,
+        "total": len(deduped),
+        "results": deduped[:20],
+        "platform_filter": platform,
+        "developer_search": developer or None,
+    }
 
 
 @app.get("/api/monitor/status")
