@@ -25,6 +25,7 @@ export default function CompetitorWatch() {
   const [searchResults, setSearchResults] = useState([])
   const [searchPlatform, setSearchPlatform] = useState('all')  // 'all' | 'app_store' | 'google_play'
   const [searchingDev, setSearchingDev] = useState(null)  // 当前正在搜哪个开发者（显示标签）
+  const [webhookUrl, setWebhookUrl] = useState('')  // Webhook URL 输入框
 
   // ============ 数据加载 ============
 
@@ -184,10 +185,15 @@ export default function CompetitorWatch() {
   const handleSaveSettings = async () => {
     setSavingSettings(true)
     try {
+      // 合并 webhookUrl 到 settings
+      const payload = { ...settings }
+      if (webhookUrl.trim()) {
+        payload.wecom_webhooks = [webhookUrl.trim()]
+      }
       await fetch(`${API_BASE}/monitor/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
       })
       setShowSettings(false)
       loadWatchlist()
@@ -606,9 +612,10 @@ export default function CompetitorWatch() {
                   <span className="settings-label">Webhook URL</span>
                   <input
                     type="text"
-                    readOnly
-                    value={(settings.wecom_webhooks && settings.wecom_webhooks[0]) || ''}
+                    value={webhookUrl || (settings.wecom_webhooks && settings.wecom_webhooks[0]) || ''}
+                    onChange={e => setWebhookUrl(e.target.value)}
                     style={{fontSize: '12px', fontFamily: 'monospace'}}
+                    placeholder="粘贴企业微信群机器人 Webhook URL..."
                   />
                 </div>
               </div>
