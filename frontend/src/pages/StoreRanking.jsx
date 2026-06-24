@@ -92,6 +92,7 @@ function AppCard({ app, index, onClick, showGrowth, onAddMonitor }) {
     setWatchError('');
     try {
       const appId = app.app_id || app.id || '';
+      if (!appId) { setWatchError('App ID无效'); return; }
       const platform = app.store === 'google_play' ? 'google_play' : 'app_store';
       const r = await axios.post('/api/monitor/watch', {
         app_id: String(appId),

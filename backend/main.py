@@ -1156,15 +1156,18 @@ async def api_search_apps(
         from google_play_scraper import search as gp_search
         gp_results = gp_search(term, n_hits=15, country=country.lower())
         for a in gp_results:
+            app_id = a.get("appId") or ""
+            if not app_id:
+                continue  # 跳过无appId的结果
             results.append({
-                "app_id": a.get("appId", ""),
+                "app_id": app_id,
                 "name": a.get("title", ""),
                 "developer": a.get("developer", ""),
                 "icon_url": a.get("icon", ""),
                 "platform": "google_play",
                 "rating": a.get("score", 0) or 0,
                 "category": a.get("genre", ""),
-                "bundle_id": a.get("appId", ""),
+                "bundle_id": app_id,
             })
     except Exception as e:
         print(f"[MonitorSearch] Google Play fail: {e}")

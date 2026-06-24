@@ -85,12 +85,18 @@ export default function CompetitorWatch() {
   // ============ 添加竞品 ============
 
   const handleAddWatch = async (app) => {
+    const appId = app.app_id || app.id
+    if (!appId) {
+      setError('搜索结果的 App ID 无效，无法添加到关注列表')
+      setTimeout(() => setError(null), 4000)
+      return
+    }
     try {
       const r = await fetch(`${API_BASE}/monitor/watch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          app_id: app.app_id || app.id,
+          app_id: appId,
           platform: app.platform,
           name: app.name,
           developer: app.developer,
