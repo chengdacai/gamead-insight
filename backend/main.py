@@ -27,7 +27,7 @@ except ImportError:
 # 确保模块导入路径正确
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -1099,9 +1099,40 @@ async def api_update_settings(settings: MonitorSettingsRequest):
 
 
 @app.post("/api/monitor/test-push")
-async def api_test_push(channel: str = Query(None, description="渠道: wecom | serverchan | None=全部")):
+async def api_test_push(request: Request, channel: str = Query(None, description="渠道: wecom | serverchan | None=全部")):
     """测试推送（指定渠道或全部已配置渠道）"""
     from services.notification_service import test_push as do_test_push
+    from services.notification_service import push_wecom_webhook
+
+    # 尝试读取请求体中的 webhook_url
+    webhook_url = None
+    try:
+        body_bytes = await request.body()
+        if body_bytes:
+            body_data = json.loads(body_bytes)
+            webhook_url = body_data.get("webhook_url", "")
+    except Exception:
+        pass
+
+    # 如果前端传了 webhook_url，直接用这个 URL 测试（不需先保存）
+    if webhook_url and webhook_url.strip():
+        test_body = (
+            f"✅ **GameAd Insight 测试消息**\n\n"
+            f"如果你收到这条消息，说明通知配置正确！\n\n"
+            f"---\n"
+            f"> 监控服务将在发现竞品新广告时自动推送通知\n"
+        )
+        r = push_wecom_webhook("🧪 GameAd Insight 测试", test_body, [webhook_url.strip()])
+        return {
+            "status": "sent" if r.get("success", 0) > 0 else "failed",
+            "total_channels": 1,
+            "success_channels": r.get("success", 0),
+            "total_targets": 1,
+            "success_targets": r.get("success", 0),
+            "details": [{"channel_type": "wecom_webhook", **r}],
+            "detail": r.get("results", [{}])[0].get("error", "") if r.get("success", 0) == 0 else "",
+        }
+
     result = do_test_push(channel)
     if result.get("total_targets", 0) == 0:
         raise HTTPException(status_code=400, detail="未配置企业微信应用。请先在设置中填入企业ID + AgentId + Secret。")

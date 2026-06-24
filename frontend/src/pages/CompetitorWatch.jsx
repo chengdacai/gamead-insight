@@ -209,7 +209,13 @@ export default function CompetitorWatch() {
   const handleTestPush = async () => {
     setTestPushResult(null)
     try {
-      const r = await fetch(`${API_BASE}/monitor/test-push`, { method: 'POST' })
+      // 优先使用当前输入的 webhook URL (未保存也能测试)
+      const body = webhookUrl.trim() ? JSON.stringify({ webhook_url: webhookUrl.trim() }) : undefined
+      const r = await fetch(`${API_BASE}/monitor/test-push`, {
+        method: 'POST',
+        headers: body ? { 'Content-Type': 'application/json' } : undefined,
+        body,
+      })
       const data = await r.json()
       setTestPushResult(data)
     } catch (e) {
@@ -682,7 +688,7 @@ export default function CompetitorWatch() {
               <button
                 className="btn btn-test-push"
                 onClick={handleTestPush}
-                disabled={!((settings.wecom_webhooks && settings.wecom_webhooks[0]) || (settings.wecom_corpid && settings.wecom_agentid && settings.wecom_secret))}
+                disabled={!(webhookUrl || (settings.wecom_webhooks && settings.wecom_webhooks[0]) || (settings.wecom_corpid && settings.wecom_agentid && settings.wecom_secret))}
               >
                 📨 测试推送
               </button>
